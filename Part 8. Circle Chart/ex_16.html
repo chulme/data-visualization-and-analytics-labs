@@ -1,0 +1,53 @@
+<body></body>
+<script src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+
+    function is_multiple(value, multiple) {
+        return value % multiple == 0;
+    }
+
+    const width = 500;
+    const height = 500;
+    const data = [10, 15, 20, 25, 30];
+    // Note different valid ways of specifying color
+    const colors = ['#ffffcc', 'red', 'rgb(0,255,0)', '#31a354', '#006837'];
+    const svg = d3.select("body")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+    const g = svg.selectAll("g")
+        .data(data)
+        .enter()
+        .append("g")
+        .attr("transform", function (d, i) {
+            return "translate(0,0)";
+        })
+
+    for (let index = 0; index < data.length; index++) {
+
+        if (is_multiple(data[index], 10)) {
+            g.append("circle")
+                .attr("cx", index * 100 + 50)
+                .attr("cy", 100)
+                .attr("r", data[index] * 1.5)
+                .attr("fill", colors[index])
+        } else {
+            g.append("rect")
+                .attr("x", (index * 100 + 50) - ((data[index] * 1.5) / 2)) // Better centres the square.
+                .attr("y", 100 - ((data[index] * 1.5) / 2)) // Better centres the square.
+                .attr("height", data[index] * 1.5)
+                .attr("width", data[index] * 1.5)
+                .attr("fill", colors[index])
+        }
+
+        g.append("text")
+            .attr("x", index * 100 + 40)
+            .attr("y", 105)
+            .attr("stroke", "teal")
+            .attr("font-size", "12px")
+            .attr("font-family", "sans-serif")
+            .text(data[index]);
+
+
+    }
+</script>

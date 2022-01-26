@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src='https://d3js.org/d3.v7.min.js'></script>
+</head>
+
+<body>
+    <script>
+
+        //Exercise 3
+        for (let i = 0; i < 10; i++) {
+            let newspan = d3.select("body").append('div').text(i)
+            desired_colour = (i < 5) ? "red" : "green"
+            newspan.style("color", desired_colour)
+        }
+
+        //Exercise 4
+        d3.select("div").text("start").style("color", "purple")
+
+        //Exercise 5
+        d3.select("body").append("div").text("Hello World!").style("color", "green")
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,124 @@
+<body></body>
+
+<script src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+
+    let shape_data = 'shape_data.csv';
+
+    var svg = d3.select("body")
+        .append("svg")
+        .attr("width", 400)
+        .attr("height", 400)
+        .style("border", '1px solid green');
+
+    // Append initial shapes to screen, which should all be removed by enter-exit.
+    //1
+    svg.append("circle")
+        .attr("cx", 100)
+        .attr("cy", 100)
+        .attr("r", 200)
+        .attr("fill", "grey")
+        .attr("class", "shape");
+
+    //2
+    svg.append("rect")
+        .attr("x", 30)
+        .attr("y", 140)
+        .attr("width", 200)
+        .attr("height", 100)
+        .attr("fill", "darkgrey")
+        .attr("class", "shape");
+
+    //3
+    svg.append("rect")
+        .attr("x", 100)
+        .attr("y", 260)
+        .attr("width", 100)
+        .attr("height", 50)
+        .attr("fill", "darkgrey")
+        .attr("class", "shape");
+
+    //4
+    svg.append("rect")
+        .attr("x", 100)
+        .attr("y", 360)
+        .attr("width", 100)
+        .attr("height", 50)
+        .attr("fill", "darkgrey")
+        .attr("class", "shape");
+
+    //5
+    svg.append("rect")
+        .attr("x", 10)
+        .attr("y", 360)
+        .attr("width", 50)
+        .attr("height", 50)
+        .attr("fill", "darkgrey")
+        .attr("class", "shape");
+
+    //6
+    svg.append("rect")
+        .attr("x", 100)
+        .attr("y", 330)
+        .attr("width", 200)
+        .attr("height", 10)
+        .attr("fill", "darkgrey")
+        .attr("class", "shape");
+
+    //7
+    svg.append("rect")
+        .attr("x", 200)
+        .attr("y", 60)
+        .attr("width", 100)
+        .attr("height", 50)
+        .attr("fill", "darkgrey")
+        .attr("class", "shape");
+
+    var selection = svg.selectAll(".shape");
+
+    d3.csv(shape_data, function (data) {
+
+        selection
+            .data(shape_data)
+            .join(
+                function (enter) {
+                    switch (data.shape) {
+                        case "rect":
+                            console.log("Appending rect to " + data.x + ", " + data.y)
+                            return svg.append("rect")
+                                .attr("x", data.x)
+                                .attr("y", data.y)
+                                .attr("width", data.width)
+                                .attr("height", data.height)
+                                .attr("fill", data.fill)
+                                .attr("class", "shape");
+                        case "circle":
+                            return svg.append("circle")
+                                .attr("cx", data.x)
+                                .attr("cy", data.y)
+                                .attr("r", data.width)
+                                .attr("fill", data.fill)
+                                .attr("class", "shape");
+                        case "ellipse":
+                            return svg.append("ellipse")
+                                .attr("cx", data.x)
+                                .attr("cy", data.y)
+                                .attr("rx", data.width)
+                                .attr("ry", data.height)
+                                .attr("fill", data.fill)
+                                .attr("class", "shape");
+                        default:
+                            console.log("No case for read shape.")
+                            return;
+                    }
+                },
+
+                function (exit) {
+                    return exit.remove();
+
+                },
+            );
+
+    });
+
+</script>

@@ -1,0 +1,90 @@
+<body></body>
+
+<script src='https://d3js.org/d3.v7.min.js'></script>
+<style>
+    svg text {
+        text-anchor: end;
+    }
+</style>
+<script>
+
+    // Exercise 14.
+    //Loading data
+    let heartfailurecsv = 'https://raw.githubusercontent.com/akmand/datasets/master/heart_failure.csv';
+    d3.csv(heartfailurecsv).then(function (data) {
+
+        let heart_failure_between_1_and_30 = 0;
+        let heart_failure_between_31_and_40 = 0;
+        let heart_failure_between_41_and_60 = 0;
+        let heart_failure_between_61_and_100 = 0;
+
+        for (let i = 0; i < data.length; i++) {
+            if (data[i].DEATH_EVENT == 1) {
+                if (data[i].age <= 30) {
+                    heart_failure_between_1_and_30++;
+                } else if (data[i].age >= 31 && data[i].age <= 40) {
+                    heart_failure_between_31_and_40++;
+                } else if (data[i].age >= 41 && data[i].age <= 60) {
+                    heart_failure_between_41_and_60++;
+                } else if (data[i].age >= 61 && data[i].age <= 100) {
+                    heart_failure_between_61_and_100++;
+                }
+            }
+        }
+
+        var data = [heart_failure_between_1_and_30,
+            heart_failure_between_31_and_40,
+            heart_failure_between_41_and_60,
+            heart_failure_between_61_and_100];
+
+        console.log(data);
+
+        var width = 500;
+        var scaleFactor = 3;
+        var barHeight = 20;
+
+        var graph = d3.select("body")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", barHeight * data.length);
+        var bar = graph.selectAll("g")
+            .data(data)
+            .enter()
+            .append("g")
+            .attr("transform", function (d, i) {
+                return "translate(0," + i * barHeight + ")";
+            });
+
+        bar.append("rect")
+            .attr("width", function (d) {
+                return d * scaleFactor;
+            })
+            .attr("height", barHeight - 1)
+            .attr("fill", function (d) { // Exercise 15
+                if (d < 50) {
+                    return "orange";
+                } else {
+                    return "red";
+                }
+            });
+
+        bar.append("text")
+            .attr("x", function (d) { return (d * scaleFactor); })
+            .attr("y", barHeight / 2)
+            .attr("dy", ".35em")
+            .style("text-anchor", function (d) {
+                if (d == 0) { // Alter text-anchor, so that text can be displayed even if bar has 0 width.
+                    return "start";
+                } else {
+                    return "end";
+                }
+            })
+            .text(function (d) { return d; });
+
+
+    });
+
+
+
+
+</script>

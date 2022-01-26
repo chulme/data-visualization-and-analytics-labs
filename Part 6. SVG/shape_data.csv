@@ -1,0 +1,5 @@
+﻿shape,x,y,width,height,fill
+rect,0,0,200,100,red
+rect,250,50,100,100,orange
+ellipse,100,300,30,100,green
+circle,300,300,50,50,purple

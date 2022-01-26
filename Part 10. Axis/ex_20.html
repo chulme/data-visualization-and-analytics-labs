@@ -1,0 +1,50 @@
+<body></body>
+
+<script src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+    const width = 400;
+    const height = 300;
+    const vertical_offset = 20;
+    var data = [10, 15, 20, 25, 30];
+    var svg = d3.select("body")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+    var xscale = d3.scaleLinear()
+        .domain([0, d3.max(data)])
+        .range([0, width - 100]);
+    var yscale = d3.scaleLinear()
+        .domain([0, d3.max(data)])
+        .range([height / 2, 0]);
+    var x_axis_bottom = d3.axisBottom()
+        .scale(xscale);
+    var y_axis_left = d3.axisLeft()
+        .scale(yscale);
+    var x_axis_top = d3.axisTop()
+        .scale(xscale);
+    var y_axis_right = d3.axisRight()
+        .scale(yscale);
+
+    //Left
+    svg.append("g")
+        .attr("transform", "translate(50, " + vertical_offset + ")")
+        .call(y_axis_left);
+    //Right
+    svg.append("g")
+        .attr("transform", "translate(350, " + vertical_offset + ")") //400-50=350
+        .call(y_axis_right)
+        .style("color", "blue");
+
+    //Bottom  
+    var xAxisTranslate = height / 2 + vertical_offset;
+    svg.append("g")
+        .attr("transform", "translate(50, " + xAxisTranslate + ")")
+        .call(x_axis_bottom);
+    //Top
+    svg.append("g")
+        .attr("transform", "translate(50, " + vertical_offset + ")")
+        .call(x_axis_top)
+        .style("color", "blue");
+
+
+</script>

@@ -1,0 +1,37 @@
+<body></body>
+
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+<style>
+    div {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        margin: 1px;
+        padding: 10px;
+    }
+</style>
+<script>
+    var body = d3.select('body');
+    var myColor0 = d3.scaleLinear().domain([1, 10]).range(["white", "blue"]);
+    var myColor1 = d3.scaleSequential().domain([1, 10]).interpolator(d3.interpolatePuRd);
+    var myColor2 = d3.scaleSequential().domain([1, 10]).interpolator(d3.interpolateViridis);
+    /*
+    d3.range(5)
+    [0, 1, 2, 3, 4]
+    */
+    var data = d3.range(5);
+    var myColor3 = d3.scaleOrdinal().domain(data).range(["gold", "blue", "green", "yellow"]);
+    var myColor4 = d3.scaleOrdinal().domain(data).range(d3.schemeSet3);
+    var cols = [myColor0,
+        myColor1,
+        myColor2,
+        myColor3,
+        myColor4];
+    for (let k = 0; k < cols.length; k++) {
+        for (let i = 0; i < 20; i++) {
+            body.append('div').style('background-color', cols[k](i));
+        }
+        body.append('br');
+    }
+    console.log('ready..');
+</script>

@@ -1,0 +1,61 @@
+<body></body>
+
+<script src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+
+    function csv_to_bar_chart(path_to_csv) {
+
+        const width = 500;
+        const barHeight = 20;
+        const margin = 1;
+
+        d3.csv(path_to_csv).then(function (data) { //Exercise 18
+
+            var max_value_of_data = d3.max(data, function (d) { return Number(d.age) })
+            var min_value_of_data = d3.min(data, function (d) { return Number(d.age) })
+
+            var scale = d3.scaleLinear()
+                .domain([min_value_of_data, max_value_of_data])
+                .range([50, 500]);
+
+            var svg = d3.select("body")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", barHeight * data.length);
+            var g = svg.selectAll("g")
+                .data(data)
+                .enter()
+                .append("g")
+                .attr("transform", function (d, i) {
+                    return "translate(0," + i * barHeight + ")";
+                });
+            g.append("rect")
+                .attr("width", function (d) {
+                    return (scale(d.age));
+                })
+                .attr('fill', function (d) { //Exercise 17
+                    if (d.age < 100) {
+                        return "green";
+                    } else if (d.age > 500) {
+                        return "red";
+                    } else {
+                        return "blue";
+                    }
+                })
+                .attr("height", barHeight - margin)
+            g.append("text")
+                .attr("x", function (d) { return (scale(d.age)); })
+                .attr("y", barHeight / 2)
+                .attr("dy", ".35em")
+                .style('text-anchor', 'end')
+                .text(function (d) { return d.age; });
+
+        });
+    }
+
+    //Exercise 19
+    csv_to_bar_chart('age_data1.csv');
+    csv_to_bar_chart('age_data2.csv');
+
+
+</script>

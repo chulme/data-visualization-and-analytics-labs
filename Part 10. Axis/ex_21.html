@@ -1,0 +1,65 @@
+<body></body>
+
+<script src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+    const data = [50, 400, 300, 900, 250, 1000]
+    const width = 600;
+    const barHeight = 20;
+    const height = barHeight * data.length;
+    const margin = 1;
+    const horz_offset = 20;
+
+
+
+    var x_scale = d3.scaleLinear()
+        .domain([0, d3.max(data)])
+        .range([0, 500]);
+
+    var y_scale = d3.scaleBand() //Band scale good for labeling each bar in a bar chart
+        .domain([1, 2, 3, 4, 5, 6])
+        .range([0, height]);
+
+    var svg = d3.select("body")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height + 100);
+    var g = svg.selectAll("g")
+        .data(data)
+        .enter()
+        .append("g")
+        .attr("transform", function (d, i) {
+            return "translate(" + horz_offset + "," + i * barHeight + ")";
+        });
+    g.append("rect")
+        .attr("width", function (d) {
+            return x_scale(d);
+        })
+        .attr('fill', 'blue')
+        .attr("height", barHeight - margin)
+    g.append("text")
+        .attr("x", function (d) { return (x_scale(d)); })
+        .attr("y", barHeight / 2)
+        .attr("dy", ".35em")
+        .style('text-anchor', 'end')
+        .text(function (d) { return d; });
+
+
+
+    var x_axis_bottom = d3.axisBottom()
+        .scale(x_scale);
+    var y_axis_left = d3.axisLeft()
+        .scale(y_scale);
+
+    //Left
+    svg.append("g")
+        .attr("transform", "translate(" + horz_offset + ",0)")
+        .call(y_axis_left);
+
+    //Bottom  
+    svg.append("g")
+        .attr("transform", "translate(" + horz_offset + "," + height + ")")
+        .call(x_axis_bottom);
+
+
+
+</script>
