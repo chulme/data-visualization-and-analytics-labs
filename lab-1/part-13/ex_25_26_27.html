@@ -106,6 +106,7 @@
                     .y(function (d) { return y(d.y) })
                 );
 
+            //Add markers
             if (data_point_shape == "circle") {
                 var points = Chart.svg.selectAll("dot")
                     .data(data)

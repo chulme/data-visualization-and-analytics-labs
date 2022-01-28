@@ -13,6 +13,7 @@
     let heartfailurecsv = 'https://raw.githubusercontent.com/akmand/datasets/master/heart_failure.csv';
     d3.csv(heartfailurecsv).then(function (data) {
 
+        // Determine heart failure per age
         let heart_failure_between_1_and_30 = 0;
         let heart_failure_between_31_and_40 = 0;
         let heart_failure_between_41_and_60 = 0;
