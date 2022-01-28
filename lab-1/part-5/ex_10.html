@@ -21,17 +21,16 @@
         for (let i = 0; i < data.length; i++) {
 
             //Count titles
-            if (data[i].DEATH_EVENT == 1) {
-                if (data[i].age <= 30) {
-                    heart_failure_between_1_and_30++;
-                } else if (data[i].age >= 31 && data[i].age <= 40) {
-                    heart_failure_between_31_and_40++;
-                } else if (data[i].age >= 41 && data[i].age <= 60) {
-                    heart_failure_between_41_and_60++;
-                } else if (data[i].age >= 61 && data[i].age <= 100) {
-                    heart_failure_between_61_and_100++;
-                }
+            if (data[i].age <= 30) {
+                heart_failure_between_1_and_30++;
+            } else if (data[i].age >= 31 && data[i].age <= 40) {
+                heart_failure_between_31_and_40++;
+            } else if (data[i].age >= 41 && data[i].age <= 60) {
+                heart_failure_between_41_and_60++;
+            } else if (data[i].age >= 61 && data[i].age <= 100) {
+                heart_failure_between_61_and_100++;
             }
+
 
         }
 
