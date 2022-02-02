@@ -1,0 +1,41 @@
+<body></body>
+<script src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+    let shape_data = 'shape_data.csv';
+    var svg = d3.select("body")
+        .append("svg")
+        .attr("width", 400)
+        .attr("height", 400)
+        .style("border", '1px solid green');
+
+    d3.csv(shape_data, function (data) {
+        switch (data.shape) {
+            case "rect":
+                return svg.append("rect")
+                    .attr("x", data.x)
+                    .attr("y", data.y)
+                    .attr("width", data.width)
+                    .attr("height", data.height)
+                    .attr("fill", data.fill)
+                    .attr("class", "shape");
+            case "circle":
+                return svg.append("circle")
+                    .attr("cx", data.x)
+                    .attr("cy", data.y)
+                    .attr("r", data.width)
+                    .attr("fill", data.fill)
+                    .attr("class", "shape");
+            case "ellipse":
+                return svg.append("ellipse")
+                    .attr("cx", data.x)
+                    .attr("cy", data.y)
+                    .attr("rx", data.width)
+                    .attr("ry", data.height)
+                    .attr("fill", data.fill)
+                    .attr("class", "shape");
+            default:
+                console.log("No case for read shape.")
+                return;
+        }
+    });
+</script>

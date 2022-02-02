@@ -22,9 +22,7 @@
         .attr("transform", function (d, i) {
             return "translate(0,0)";
         })
-
     for (let index = 0; index < data.length; index++) {
-
         if (is_multiple(data[index], 10)) {
             g.append("circle")
                 .attr("cx", index * 100 + 50)
@@ -39,7 +37,6 @@
                 .attr("width", data[index] * 1.5)
                 .attr("fill", colors[index])
         }
-
         g.append("text")
             .attr("x", index * 100 + 40)
             .attr("y", 105)
@@ -47,7 +44,5 @@
             .attr("font-size", "12px")
             .attr("font-family", "sans-serif")
             .text(data[index]);
-
-
     }
 </script>

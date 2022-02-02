@@ -75,9 +75,7 @@
         .attr("class", "shape");
 
     var selection = svg.selectAll(".shape");
-
     d3.csv(shape_data, function (data) {
-
         selection
             .data(shape_data)
             .join(
@@ -111,13 +109,9 @@
                             return;
                     }
                 },
-
                 function (exit) {
                     return exit.remove();
-
                 },
             );
-
     });
-
 </script>

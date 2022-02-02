@@ -9,14 +9,11 @@
     const margin = 1;
     const horz_offset = 20;
 
-
-
     var x_scale = d3.scaleLinear()
         .domain([0, d3.max(data)])
         .range([0, 500]);
-
     var y_scale = d3.scaleBand() //Band scale good for labeling each bar in a bar chart
-        .domain([1, 2, 3, 4, 5, 6])
+        .domain(Array.from({ length: data.length }, (_, i) => i + 1)) // creates array from 1-#rows
         .range([0, height]);
 
     var svg = d3.select("body")
@@ -42,8 +39,6 @@
         .attr("dy", ".35em")
         .style('text-anchor', 'end')
         .text(function (d) { return d; });
-
-
 
     var x_axis_bottom = d3.axisBottom()
         .scale(x_scale);

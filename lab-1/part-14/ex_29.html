@@ -63,14 +63,18 @@
         .attr("y2", (margin + ySize))
         .selectAll("stop")
         .data(function () {
-            gradient_map = [];
-            // For each color within the scale, add it to the gradient array, with an evenly spread offset.
+            gradient = [];
+            // For each color within the scale, add it to the gradient array,
+            // with an evenly spread offset.
             for (let index = 0; index < color.range().length; index++) {
                 const element = data[index];
-                gradient_map.push({ offset: (index / color.range().length) * 100 + "%", color: color(index) })
+                gradient.push({
+                    offset: (index / color.range().length) * 100 + "%",
+                    color: color(index)
+                })
             }
-            console.log(gradient_map);
-            return gradient_map;
+            console.log(gradient);
+            return gradient;
         })
         .enter().append("stop")
         .attr("offset", function (d) {

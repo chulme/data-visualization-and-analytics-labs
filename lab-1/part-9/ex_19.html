@@ -11,18 +11,18 @@
 
         d3.csv(path_to_csv).then(function (data) { //Exercise 18
 
-            var max_value_of_data = d3.max(data, function (d) { return Number(d.age) })
-            var min_value_of_data = d3.min(data, function (d) { return Number(d.age) })
+            let max_value_of_data = d3.max(data, function (d) { return Number(d.age) })
+            let min_value_of_data = d3.min(data, function (d) { return Number(d.age) })
 
-            var scale = d3.scaleLinear()
+            let scale = d3.scaleLinear()
                 .domain([min_value_of_data, max_value_of_data])
                 .range([50, 500]);
 
-            var svg = d3.select("body")
+            let svg = d3.select("body")
                 .append("svg")
                 .attr("width", width)
                 .attr("height", barHeight * data.length);
-            var g = svg.selectAll("g")
+            let g = svg.selectAll("g")
                 .data(data)
                 .enter()
                 .append("g")
@@ -33,7 +33,7 @@
                 .attr("width", function (d) {
                     return (scale(d.age));
                 })
-                .attr('fill', function (d) { //Exercise 17
+                .attr('fill', function (d) {
                     if (d.age < 100) {
                         return "green";
                     } else if (d.age > 500) {
@@ -53,7 +53,6 @@
         });
     }
 
-    //Exercise 19
     csv_to_bar_chart('age_data1.csv');
     csv_to_bar_chart('age_data2.csv');
 
