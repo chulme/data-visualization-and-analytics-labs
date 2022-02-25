@@ -1,0 +1,26 @@
+<script src="//d3js.org/d3.v7.min.js"></script>
+<script>
+    let cc = d3.interpolate('red', 'green')
+    console.log(d3.color('red'))
+    console.log(d3.color('green'))
+
+    console.log(cc(0.5));
+    /**
+     * As before, cc(0.5) interpolates a value halfway between red (255,0,0) and green (0,128,0).
+     * The color values can be considered as an array and operates like the previous exercise.
+     * RED: 
+     * cc(x) = 255-(255 * x)
+     * cc(0.5) = 255-(255 * 0.5)
+     * cc(0.5) = 128
+     * 
+     * GREEN:
+     * cc(x) = 0-(128 * x)
+     * cc(0.5) = 0-(128 * 0.5)
+     * cc(0.5) = -64 (the abs value is used)
+     * 
+     * BLUE:
+     * cc(x) = 0-(0 * x)
+     * cc(0.5) = 0
+
+     */
+</script>

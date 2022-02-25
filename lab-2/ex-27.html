@@ -1,0 +1,89 @@
+<body>
+    <button onclick="updatePieChart(data1)">First Dataset</button>
+    <button onclick="updatePieChart(data2)">Second Dataset</button>
+    <button onclick="updatePieChart(data3)">Third Dataset</button>
+
+</body>
+
+<script src="//d3js.org/d3.v7.min.js"></script>
+<script>
+
+    // A simple way to deal with varying input sizes is to
+    // append 0's to each dataset so that each array is of
+    // the same size. This has the added benefit of requiring
+    // only a single data-preprocess step, compared to
+    // complexifying the main body of code, which will be
+    // executed significantly more.
+    var data1 = {
+        apples: [5345, 2879, 1997, 2437, 4045, 0], //5 elements
+    };
+
+    var data2 = {
+        apples: [345, 179, 97, 437, 0, 0],    // 4 elements
+    };
+
+    var data3 = {
+        apples: [45, 79, 97, 37, 15, 19], //6 elements
+    };
+
+
+    var width = 460,
+        height = 300,
+        radius = Math.min(width, height) / 2;
+    var color = d3.scaleOrdinal().range(d3.schemeSet3);
+    var pie = d3.pie()
+        .sort(null);
+    var arc = d3.arc()
+        .innerRadius(radius - 100)
+        .outerRadius(radius - 50);
+    var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+    updatePieChart(data1);
+
+    function updatePieChart(data) {
+        var path = svg.selectAll("path")
+            .data(pie(data.apples))
+            .join(
+                function (enter) {
+                    enter.append("path")
+                        .attr("fill", function (d, i) { return color(i); })
+                        .attr("d", arc)
+                        .transition()
+                        .duration(1000)
+                        .each(function (d) { this.current = d }) // store original objects as current member
+                        .attrTween("d", function (d) {
+                            // Create Interpolate function based on the start and end angles.
+                            var i = d3.interpolate(d.endAngle, d.startAngle);
+                            return function (t) {
+                                // Interpolate a starting angle for time t
+                                d.startAngle = i(t);
+                                // Return arc, with ever adjusting starting angle.
+                                return arc(d);
+                            }
+                        });
+
+                },
+                function (update) {
+                    update.attr("fill", function (d, i) { return color(i); })
+                        .attr("d", arc)
+                        .transition()
+                        .duration(1000)
+                        .attrTween("d", function (d) {
+                            // Create Interpolate function based on the current arc, and the new desired arc.
+                            var i = d3.interpolate(this.current, d);
+                            this.current = d; // Update current to new desired arc.
+                            return function (t) {
+                                console.log(t);
+                                return arc(i(t)); //Return interpolated arc function at given time t.
+                            }
+                        });
+
+                },
+            )
+
+    }
+</script>

@@ -1,0 +1,24 @@
+<script src="//d3js.org/d3.v7.min.js"></script>
+<script>
+    let intr = d3.interpolate([20, 40, 4], [1, 12, 10])
+    console.log("Type of returned function is: ", typeof (intr));
+    console.log(intr(0.2))
+    /**
+     * Output of intr(0.2) is [16.2, 34.4, 5.2]. This is because each
+     * element pair (by position) in the array is interpolated.
+     * 
+     * For ex, for the first element 20 and 1, has the range of 20-1, width a width of 19.
+     * Given the domain is 0-1, it can be said for the first element
+     * inter(x) = 20-(19 * x)
+     * inter(0.2) = 20-(19*0.2)
+     * inter(0.2) = 16.2
+     * 
+     * For the 2nd pair of 40 and 12, has the range 40-12, with a width of 28.
+     * Given the domain is 0-1, it can be said that for the first element:
+     * inter(x) = 40-(28*x)
+     * inter(0.2) = 40-(28*0.2)
+     * inter(0.2) = 34.4
+     * 
+     * The same applies for the 3rd pair of 4 and 10.
+     */
+</script>

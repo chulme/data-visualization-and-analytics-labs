@@ -1,0 +1,40 @@
+<body></body>
+
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+    var font_size = 30;
+    var svg = d3.select("body")
+        .append("svg")
+        .attr("width", 400)
+        .attr("height", 400)
+        .style("border", '1px solid green');
+
+    //Create circle inside SVG 
+    svg.append("text")
+        .attr("x", 120)
+        .attr("y", 200)
+        .text("Hello World!")
+        .style("font-size", font_size + "px")
+        .attr("fill", "black");
+
+    d3.select("text")
+        .on("mouseover", function (event) {
+            d3.select(this)
+                .transition()
+                .duration(200)
+                .style("font-size", font_size + 15 + "px")
+                .attr("fill", "red");
+
+            console.log("increasing font size!");
+
+        })
+        .on("mouseout", function () {
+            d3.select(this)
+                .transition()
+                .duration(500)
+                .ease(d3.easeBounce)
+                .style("font-size", font_size + "px")
+                .attr("fill", "black");
+        });
+
+</script>

@@ -1,0 +1,50 @@
+<body></body>
+
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+    var svg = d3.select("body")
+        .append("svg")
+        .attr("width", 600)
+        .attr("height", 500);
+    var startingBarHeight = 20;
+    var endingBarHeight = 100;
+
+    var bar1 = svg.append("rect")
+        .attr("fill", "blue")
+        .attr("x", 100)
+        .attr("y", 20)
+        .attr("height", startingBarHeight)
+        .attr("width", 10)
+    var bar2 = svg.append("rect")
+        .attr("fill", "blue")
+        .attr("x", 120)
+        .attr("y", 20)
+        .attr("height", startingBarHeight)
+        .attr("width", 10)
+    var bar3 = svg.append("rect")
+        .attr("fill", "blue")
+        .attr("x", 140)
+        .attr("y", 20)
+        .attr("height", startingBarHeight)
+        .attr("width", 10)
+    
+        update();
+    function update() {
+        var delayBetweenHeightChange = 2000;
+        // Increase height of bars gradually
+        changeHeight(bar1, endingBarHeight, 0);
+        changeHeight(bar2, endingBarHeight, delayBetweenHeightChange);
+        changeHeight(bar3, endingBarHeight, delayBetweenHeightChange * 2);
+        // Return bar height to original height gradually
+        changeHeight(bar1, startingBarHeight, delayBetweenHeightChange * 3);
+        changeHeight(bar2, startingBarHeight, delayBetweenHeightChange * 4);
+        changeHeight(bar3, startingBarHeight, delayBetweenHeightChange * 5);
+    }
+    function changeHeight(bar, height, delay) {
+        bar.transition()
+            .ease(d3.easeLinear)
+            .duration(2000)
+            .delay(delay)
+            .attr("height", height);
+    }
+</script>

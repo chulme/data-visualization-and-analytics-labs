@@ -1,0 +1,129 @@
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+
+<body>
+    Click on a circle to find similar circles! (circles with values +/- 5 to the selected circle)
+</body>
+
+<script>
+    var width = 900, height = 900;
+
+    // Create scale that has slight padding, to prevent circles going off screen.
+    var horzPadding = 100;
+    var vertPadding = 200;
+    var xScale = d3.scaleLinear().domain([0, 1]).range([horzPadding, width - horzPadding]);
+
+    // setup svg
+    d3.select('body').append('svg').attr('width', width).attr('height', height);
+
+    d3.csv("/lab-2/data/ex-15.csv").then(function (data) {
+
+        //Create color scale from red-blue.
+        var color = d3.scaleLinear().domain([0, data.length]).range(["red", "blue"]);
+
+        var simulation = d3.forceSimulation(data)
+            .force('charge', d3.forceManyBody().strength(5))
+            .force('x', d3.forceX(function (d) {
+                return xScale(Math.random()); //randomly place circles along axis.
+            }))
+            .force('y', d3.forceY(function (d) {
+                return height - vertPadding;
+            }))
+            .force('collision', d3.forceCollide()
+                .radius(function (d) {
+                    return parseInt(d.value)
+                }))
+            .alphaDecay(0) // Set alpha decay so simulation never ends.
+            .on('tick', ticked)
+
+        function ticked() {
+            var u = d3.select('svg')
+                .selectAll('g')
+                .data(data)
+                .join(
+                    // Create translated g container, and append circle within it.
+                    // This allows pop-up text to be appended to the g element,
+                    // so that it can be visible above the circle, while also
+                    // following the simulation path.
+                    function (enter) {
+                        //Append g container
+                        var container = enter.append('g')
+                            .attr("transform", function (d) {
+                                return "translate(" + d.x + "," + d.y + ")";
+                            })
+                            .on('mouseover', addText)
+                            .on('mouseout', removeText)
+                            .on('click', seperate)
+
+                        //Append circle within container.
+                        container.append("circle")
+                            .attr("r", function (d, i) {
+                                return d.value;
+                            })
+                            .attr('fill', function (d, i) {
+                                return color(i);
+                            })
+                            .on('mouseover', highlight)
+                            .on('mouseout', removeHighlight)
+                    },
+                    function (update) {
+                        update.attr("transform", function (d) {
+                            return "translate(" + d.x + "," + d.y + ")";
+                        });
+                    },
+                    function (exit) {
+                        exit.remove();
+                    }
+
+                )
+        }
+        console.log('ready..');
+
+
+        //mouseover event handler function
+        function addText(d, i) {
+            d3.select(this).append("text")
+                .attr('class', 'val')
+                .text(i.value)
+                .style("font-size", "25px");
+
+        }
+
+        //mouseout event handler function
+        function removeText(d, i) {
+            d3.selectAll('.val')
+                .remove()
+        }
+
+        function highlight(d, i) {
+            var lighterColor = d3.rgb(color(i.index)).darker(-2);
+            d3.select(this).attr("fill", lighterColor);
+        }
+
+        function removeHighlight(d, i) {
+            d3.select(this).attr("fill", color(i.index));
+        }
+
+        function seperate(d, i) {
+
+            similarityRange = 5;
+
+            // Create force that only affects circles that are similar (+/- similarityRange)
+            // to the selected element.
+            var centerForce = d3.forceCenter(width / 2, vertPadding)
+            var init = centerForce.initialize;
+            centerForce.initialize = function (nodes) {
+                init(nodes.filter(function (n) {
+                    return isSimilar(parseInt(i.value), parseInt(n.value), similarityRange);
+                }))
+            }
+            simulation
+                .force("centerForce", centerForce)
+
+        }
+
+        function isSimilar(x, y, similarityRange) {
+            return x >= y - similarityRange && x <= y + similarityRange;
+        }
+
+    });
+</script>

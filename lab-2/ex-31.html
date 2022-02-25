@@ -1,0 +1,96 @@
+<body></body>
+
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+    var width = 400, height = 400;
+    // setup svg
+    d3.select('body').append('svg').attr('width', width).attr('height', height);
+
+    d3.csv("/lab-2/data/ex-15.csv").then(function (data) {
+
+        //Create color scale from red-blue.
+        var color = d3.scaleLinear().domain([0, data.length]).range(["red", "blue"]);
+
+        var simulation = d3.forceSimulation(data)
+            .force('charge', d3.forceManyBody().strength(25))
+            .force('center', d3.forceCenter(width / 2, height / 2))
+            .force('collision', d3.forceCollide().radius(function (d) {
+                return d.value;
+            }))
+            .on('tick', ticked)
+
+
+
+        function ticked() {
+
+            var u = d3.select('svg')
+                .selectAll('g')
+                .data(data)
+                .join(
+                    // Create translated g container, and append circle within it.
+                    // This allows pop-up text to be appended to the g element,
+                    // so that it can be visible above the circle, while also
+                    // following the simulation path.
+                    function (enter) {
+
+                        //Append g container
+                        var container = enter.append('g')
+                            .attr("transform", function (d) {
+                                return "translate(" + d.x + "," + d.y + ")";
+                            })
+                            .on('mouseover', addText)
+                            .on('mouseout', removeText);
+
+                        //Append circle within container.
+                        container.append("circle")
+                            .attr("r", function (d, i) {
+                                return d.value;
+                            })
+                            .attr('fill', function (d, i) {
+                                return color(i);
+                            })
+                            .on('mouseover', highlight)
+                            .on('mouseout', removeHighlight)
+
+
+                    },
+                    function (update) {
+                        update.attr("transform", function (d) {
+                            return "translate(" + d.x + "," + d.y + ")";
+                        });
+                    },
+                    function (exit) {
+                        exit.remove();
+                    }
+
+                )
+        }
+        console.log('ready..');
+
+
+        //mouseover event handler function
+        function addText(d, i) {
+            d3.select(this).append("text")
+                .attr('class', 'val')
+                .text(i.value)
+                .style("font-size", "25px");
+
+        }
+
+        //mouseout event handler function
+        function removeText(d, i) {
+            d3.selectAll('.val')
+                .remove()
+        }
+
+        function highlight(d, i) {
+            var lighterColor = d3.rgb(color(i.index)).darker(-2);
+            d3.select(this).attr("fill", lighterColor);
+        }
+
+        function removeHighlight(d, i) {
+            d3.select(this).attr("fill", color(i.index));
+        }
+
+    });
+</script>

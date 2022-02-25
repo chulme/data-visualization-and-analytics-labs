@@ -1,0 +1,21 @@
+<body></body>
+
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+
+    // Slight delays added between transitions to make each
+    // colour stop more observable.
+    d3.select('body')
+        .append("div")
+        .style('width', '100px')
+        .style('height', '100px')
+        .style('background-color', 'blue')
+        .transition()
+        .delay(1000)
+        .duration(1000)
+        .style("background-color", "red")
+        .transition()
+        .delay(1000)
+        .duration(2000)
+        .style("background-color", "green");
+</script>

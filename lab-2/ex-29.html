@@ -1,0 +1,42 @@
+<body></body>
+
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+    var width = 400, height = 400;
+    // setup svg
+    d3.select('body').append('svg').attr('width', width).attr('height', height);
+
+    d3.csv("/lab-2/data/ex-15.csv").then(function (data) {
+
+        //Create color scale from red-blue.
+        var color = d3.scaleLinear().domain([0, data.length]).range(["red", "blue"]);
+
+        var simulation = d3.forceSimulation(data)
+            .force('charge', d3.forceManyBody().strength(25))
+            .force('center', d3.forceCenter(width / 2, height / 2))
+            .force('collision', d3.forceCollide().radius(function (d) {
+                return d.value;
+            }))
+            .on('tick', ticked);
+        function ticked() {
+            var u = d3.select('svg')
+                .selectAll('circle')
+                .data(data)
+                .join('circle')
+                .attr('fill', function (d, i) {
+                    return color(i);
+                })
+                .attr('r', function (d) {
+                    return d.value;
+                })
+                .attr('cx', function (d) {
+                    return d.x
+                })
+                .attr('cy', function (d) {
+                    return d.y
+                })
+        }
+        console.log('ready..');
+
+    });
+</script>

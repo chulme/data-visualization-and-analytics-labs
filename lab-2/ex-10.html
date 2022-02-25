@@ -1,0 +1,36 @@
+<body></body>
+
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+    var circle_radius = 100;
+    var svg = d3.select("body")
+        .append("svg")
+        .attr("width", 400)
+        .attr("height", 400)
+        .style("border", '1px solid green');
+
+    //Create circle inside SVG 
+    svg.append("circle")
+        .attr("cx", 200)
+        .attr("cy", 200)
+        .attr("r", circle_radius)
+        .attr("fill", "blue")
+
+    d3.select("circle")
+        .on("mouseover", function (event) {
+            d3.select(this)
+                .transition()
+                .duration(200)
+                .attr('r', circle_radius + 50)
+
+        })
+        .on("mouseout", function () {
+            d3.select(this)
+                .transition()
+                .duration(500)
+                .attr('r', circle_radius)
+                .ease(d3.easeBounce)
+
+        });
+
+</script>

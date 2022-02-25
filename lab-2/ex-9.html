@@ -1,0 +1,41 @@
+<body></body>
+
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+    d3.select('body')
+        .append("div")
+        .style('width', '100px')
+        .style('height', '100px')
+        .style('background-color', 'blue')
+        .style('transform', 'scale(1.0)')
+        .transition()
+        .ease(d3.easeBounce)
+        .duration(5000)
+        .style("background-color", "red")
+        .style('transform', 'scale(0.5)')
+
+    d3.select('body')
+        .append("div")
+        .style('width', '100px')
+        .style('height', '100px')
+        .style('background-color', 'blue')
+        .style('transform', 'scale(1.0)')
+        .transition()
+        .ease(d3.easeLinear)
+        .duration(5000)
+        .style("background-color", "red")
+        .style('transform', 'scale(0.5)')
+
+    d3.select('body')
+        .append("div")
+        .style('width', '100px')
+        .style('height', '100px')
+        .style('background-color', 'blue')
+        .style('transform', 'scale(1.0)')
+        .transition()
+        .ease(d3.easeElastic)
+        .duration(5000)
+        .style("background-color", "red")
+        .style('transform', 'scale(0.5)')
+
+</script>

@@ -1,0 +1,36 @@
+<body></body>
+
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+    var svg = d3.select("body")
+        .append("svg")
+        .attr("width", 400)
+        .attr("height", 400)
+        .style("border", '1px solid green');
+
+    //Create line element inside SVG 
+    svg.append("circle")
+        .attr("cx", 200)
+        .attr("cy", 200)
+        .attr("r", 100)
+        .attr("fill", "blue");
+
+    d3.selectAll("circle")
+        .on("mouseover", function (event) {
+            d3.select(this)
+                .style("r", "150")
+
+            // Get current event info
+            // Note: d3.event (event) passed as the first argument to all listeners
+            console.log(event);
+            // Get x & y co-ordinates
+            // Note: d3.mouse was removed in d3v6, you should use d3.pointer(event)
+            console.log(d3.pointer(event));
+        })
+        .on("mouseout", function () {
+            d3.select(this)
+                .style("r", "100")
+
+
+        });
+</script>

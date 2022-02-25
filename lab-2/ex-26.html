@@ -1,0 +1,11 @@
+<script src="//d3js.org/d3.v7.min.js"></script>
+<script>
+
+    let date1 = new Date(2022, 0, 1, 0, 0, 0); //1st of Jan 2022
+    let date2 = new Date(2022, 11, 31, 0, 0, 0); //31st of Dec 2022
+    let x = 0.5;
+    console.log("Interpolate(" + x + ") between " + date1 + " and " + date2);
+    var intr = d3.interpolate(date1, date2)
+    console.log(intr(x));
+
+</script>
