@@ -13,7 +13,7 @@
                 // Set Dimensions
                 Chart.X_SIZE = 600;
                 Chart.Y_SIZE = 600;
-                Chart.MARGIN = 80;
+                Chart.MARGIN = 100;
                 Chart.X_MAX = Chart.X_SIZE - Chart.MARGIN * 2;
                 Chart.Y_MAX = Chart.Y_SIZE - Chart.MARGIN * 2;
                 // Append SVG Object to the Page
@@ -23,6 +23,14 @@
                     .attr('height', Chart.Y_SIZE)
                     .append("g")
                     .attr("transform", "translate(" + Chart.MARGIN + "," + Chart.MARGIN + ")");
+
+
+
+                Chart.svg.append("text")
+                    .attr("transform", "translate(" + (Chart.X_SIZE - (2 * Chart.MARGIN)) / 2 + "," + -20 + ")")
+                    .attr("font-size", "24px")
+                    .text("COVID-19 cases over time")
+                    .style("text-anchor", "middle");
 
                 // Create extents with opposite extents, so that the first read dataset's extents
                 // are used instead.
@@ -35,15 +43,34 @@
                     .range([0, Chart.X_MAX]);
                 Chart.svg.append("g")
                     .attr("class", "bottom_axis")
-                    .attr("transform", "translate(0," + Chart.Y_MAX + ")")
                     .call(d3.axisBottom(this.x))
+                    .append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("x", Chart.Y_MAX / 2)
+                    .attr("y", -25)
+                    .attr("dy", "-5.1em")
+                    .attr("text-anchor", "middle")
+                    .attr("stroke", "black")
+                    .text("Covid Cases");
+
                 // Y Axis
                 this.y = d3.scaleLinear()
                     .domain([this.yExtent[0], this.yExtent[1]])
                     .range([Chart.Y_MAX, 0]);
                 Chart.svg.append("g")
                     .attr("class", "left_axis")
-                    .call(d3.axisLeft(this.y));
+                    .call(d3.axisLeft(this.y))
+                    .append("text")
+                    .attr("y", Chart.Y_MAX + 40)
+                    .attr("x", Chart.X_MAX / 2)
+                    .attr("text-anchor", "middle")
+                    .attr("stroke", "black")
+                    .text("Date");
+
+
+
+
+
             }
 
             draw_line(data, color) {
