@@ -38,7 +38,6 @@
                     .attr("class", "bottom_axis")
                     .attr("transform", "translate(0," + Chart.Y_MAX + ")")
                     .call(d3.axisBottom(this.x))
-                    .attr('color', 'green'); // make bottom axis green
                 // top
                 Chart.svg.append("g")
                     .attr("class", "top_axis")
@@ -81,7 +80,6 @@
                 Chart.svg.select("g .bottom_axis")
                     .attr("transform", "translate(0," + Chart.Y_MAX + ")")
                     .call(d3.axisBottom(x))
-                    .attr('color', 'green'); // make bottom axis green
                 // top
                 Chart.svg.select("g .top_axis")
                     .call(d3.axisTop(x));
@@ -120,23 +118,16 @@
             const continents = ["Asia", "Africa", "Europe", "North America", "South America", "Oceania"];
             const ISO_CODES = ["OWID_ASI", "OWID_AFR", "OWID_EUR", "OWID_NAM", "OWID_SAM", "OWID_OCE"];
 
-            var filtered = data
-                .filter(function (d) {
-                    return ISO_CODES.includes(d.iso_code);
-                });
+            var filtered = data.filter(d => ISO_CODES.includes(d.iso_code));
 
+            var continentCovidDataMap = d3.group(filtered, d => d.iso_code)
 
-            var continentCovidDataMap =
-                d3.group(filtered, d => d.iso_code)
-
-
+            var colorScale = d3.scaleOrdinal().domain([0, ISO_CODES.length]).range(d3.schemeSet3);
 
             var chart = new Chart();
-            chart.draw_line(continentCovidDataMap.get("OWID_EUR"), "blue");
-            chart.draw_line(continentCovidDataMap.get("OWID_ASI"), "red");
-
-
-
+            for (let i = 0; i < ISO_CODES.length; i++) {
+                chart.draw_line(continentCovidDataMap.get(ISO_CODES[i]), colorScale(i));
+            }
         }
         function displayWeathVsCasesScatterPlot(data) {
             console.log("World");
