@@ -23,13 +23,14 @@
                     .attr('height', Chart.Y_SIZE)
                     .append("g")
                     .attr("transform", "translate(" + Chart.MARGIN + "," + Chart.MARGIN + ")");
-                this.xExtent = [null, null];
-                this.yExtent = [null, null];
 
-
+                // Create extents with opposite extents, so that the first read dataset's extents
+                // are used instead.
+                this.xExtent = [new Date(8640000000000000), new Date(0)];
+                this.yExtent = [Infinity, 0];
 
                 // X Axis
-                this.x = d3.scaleLinear()
+                this.x = d3.scaleTime()
                     .domain([this.xExtent[0], this.xExtent[1]])
                     .range([0, Chart.X_MAX]);
                 // bottom
@@ -62,17 +63,17 @@
             draw_line(data, color) {
 
                 //Update extents (ie. limits of data), considering old and new data
-                var localXExtent = d3.extent(data, d => { return d.x });
-                this.xExtent = [Math.min(localXExtent[0], this.xExtent[0]),
-                Math.max(localXExtent[1], this.xExtent[1])]
+                var localXExtent = d3.extent(data, d => { return new Date(d.date) });
+                this.xExtent = [((localXExtent[0] < this.xExtent[0]) ? localXExtent[0] : this.xExtent[0]),
+                ((localXExtent[1] > this.xExtent[1]) ? localXExtent[1] : this.xExtent[1])]
 
-                var localYExtent = d3.extent(data, d => { return d.y });
-                this.yExtent = [Math.min(localYExtent[0], this.yExtent[0]),
-                Math.max(localYExtent[1], this.yExtent[1])]
+                var localYExtent = d3.extent(data, d => { return parseInt(d.total_cases) });
+                this.yExtent = [((localYExtent[0] < this.yExtent[0]) ? localYExtent[0] : this.yExtent[0]),
+                ((localYExtent[1] > this.yExtent[1]) ? localYExtent[1] : this.yExtent[1])]
 
 
                 // X Axis
-                var x = d3.scaleLinear()
+                var x = d3.scaleTime()
                     .domain([this.xExtent[0], this.xExtent[1]])
                     .range([0, Chart.X_MAX]);
 
@@ -106,37 +107,46 @@
                     .attr("stroke-width", 1.5)
                     .attr("d", d3.line()
                         .x(function (d) {
-                            return x(d.x)
+                            return x(new Date(d.date))
                         })
-                        .y(function (d) { return y(d.y) })
+                        .y(function (d) { return y(d.total_cases) })
                     );
-
-                //Add markers
-                var points = Chart.svg.selectAll("dot")
-                    .data(data)
-                    .enter()
-                    .append("circle")
-                    .attr("cx", function (d) { return x(d.x) })
-                    .attr("cy", function (d) { return y(d.y) })
-                    .attr("r", 5)
-                    .style("fill", color)
-                    .attr("class", "pulse");
             }
         }
 
-        // Create Random Points
-        const numPoints = 100;
-        const data = [];
-        for (let i = 0; i < numPoints; i++) { data.push({ x: i / 100, y: Math.sin(6.2 * i / 100) }); }
-
-        var chart = new Chart();
-        chart.draw_line(data, "blue"); //Exercise 25
-
-        const data2 = [];
-        for (let i = 0; i < numPoints; i++) { data2.push({ x: i / 100, y: Math.cos(6.2 * i / 100) }); }
-        chart.draw_line(data2, "red"); //Exercise 25
 
 
+        function displayCovidCasesOverTimeGraph(data) {
+            const continents = ["Asia", "Africa", "Europe", "North America", "South America", "Oceania"];
+            const ISO_CODES = ["OWID_ASI", "OWID_AFR", "OWID_EUR", "OWID_NAM", "OWID_SAM", "OWID_OCE"];
+
+            var filtered = data
+                .filter(function (d) {
+                    return ISO_CODES.includes(d.iso_code);
+                });
+
+
+            var continentCovidDataMap =
+                d3.group(filtered, d => d.iso_code)
+
+
+
+            var chart = new Chart();
+            chart.draw_line(continentCovidDataMap.get("OWID_EUR"), "blue");
+            chart.draw_line(continentCovidDataMap.get("OWID_ASI"), "red");
+
+
+
+        }
+        function displayWeathVsCasesScatterPlot(data) {
+            console.log("World");
+
+
+        }
+
+        d3.csv('https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv')
+            .then(displayCovidCasesOverTimeGraph)
+            .then(displayWeathVsCasesScatterPlot);
     </script>
 </body>
 
