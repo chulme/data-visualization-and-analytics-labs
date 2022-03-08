@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Lab 3</title>
+</head>
+
+<body>
+    <script src='https://d3js.org/d3.v7.min.js'></script>
+    <script>
+        class Chart {
+            constructor() {
+                // Set Dimensions
+                Chart.X_SIZE = 600;
+                Chart.Y_SIZE = 600;
+                Chart.MARGIN = 40;
+                Chart.X_MAX = Chart.X_SIZE - Chart.MARGIN * 2;
+                Chart.Y_MAX = Chart.Y_SIZE - Chart.MARGIN * 2;
+                // Append SVG Object to the Page
+                Chart.svg = d3.select("body")
+                    .append("svg")
+                    .attr('width', Chart.X_SIZE)
+                    .attr('height', Chart.Y_SIZE)
+                    .append("g")
+                    .attr("transform", "translate(" + Chart.MARGIN + "," + Chart.MARGIN + ")");
+                this.xExtent = [null, null];
+                this.yExtent = [null, null];
+
+
+
+                // X Axis
+                this.x = d3.scaleLinear()
+                    .domain([this.xExtent[0], this.xExtent[1]])
+                    .range([0, Chart.X_MAX]);
+                // bottom
+                Chart.svg.append("g")
+                    .attr("class", "bottom_axis")
+                    .attr("transform", "translate(0," + Chart.Y_MAX + ")")
+                    .call(d3.axisBottom(this.x))
+                    .attr('color', 'green'); // make bottom axis green
+                // top
+                Chart.svg.append("g")
+                    .attr("class", "top_axis")
+                    .call(d3.axisTop(this.x));
+                // Y Axis
+                this.y = d3.scaleLinear()
+                    .domain([this.yExtent[0], this.yExtent[1]])
+                    .range([Chart.Y_MAX, 0]);
+                // left y axis
+                Chart.svg.append("g")
+                    .attr("class", "left_axis")
+                    .call(d3.axisLeft(this.y));
+                // right y axis
+                Chart.svg.append("g")
+                    .attr("class", "right_axis")
+                    .attr("transform", `translate(${Chart.Y_MAX},0)`)
+                    .call(d3.axisRight(this.y));
+
+
+            }
+
+            draw_line(data, color) {
+
+                //Update extents (ie. limits of data), considering old and new data
+                var localXExtent = d3.extent(data, d => { return d.x });
+                this.xExtent = [Math.min(localXExtent[0], this.xExtent[0]),
+                Math.max(localXExtent[1], this.xExtent[1])]
+
+                var localYExtent = d3.extent(data, d => { return d.y });
+                this.yExtent = [Math.min(localYExtent[0], this.yExtent[0]),
+                Math.max(localYExtent[1], this.yExtent[1])]
+
+
+                // X Axis
+                var x = d3.scaleLinear()
+                    .domain([this.xExtent[0], this.xExtent[1]])
+                    .range([0, Chart.X_MAX]);
+
+                // bottom
+                Chart.svg.select("g .bottom_axis")
+                    .attr("transform", "translate(0," + Chart.Y_MAX + ")")
+                    .call(d3.axisBottom(x))
+                    .attr('color', 'green'); // make bottom axis green
+                // top
+                Chart.svg.select("g .top_axis")
+                    .call(d3.axisTop(x));
+                // Y Axis
+                var y = d3.scaleLinear()
+                    .domain([this.yExtent[0], this.yExtent[1]])
+                    .range([Chart.Y_MAX, 0]);
+
+                // left y axis
+                Chart.svg.select("g .left_axis")
+                    .call(d3.axisLeft(y));
+                // right y axis
+                Chart.svg.select("g .right_axis")
+                    .attr("transform", `translate(${Chart.Y_MAX},0)`)
+                    .call(d3.axisRight(y));
+
+
+                // Add the line
+                Chart.svg.append("path")
+                    .datum(data)
+                    .attr("fill", "none")
+                    .attr("stroke", color)
+                    .attr("stroke-width", 1.5)
+                    .attr("d", d3.line()
+                        .x(function (d) {
+                            return x(d.x)
+                        })
+                        .y(function (d) { return y(d.y) })
+                    );
+
+                //Add markers
+                var points = Chart.svg.selectAll("dot")
+                    .data(data)
+                    .enter()
+                    .append("circle")
+                    .attr("cx", function (d) { return x(d.x) })
+                    .attr("cy", function (d) { return y(d.y) })
+                    .attr("r", 5)
+                    .style("fill", color)
+                    .attr("class", "pulse");
+            }
+        }
+
+        // Create Random Points
+        const numPoints = 100;
+        const data = [];
+        for (let i = 0; i < numPoints; i++) { data.push({ x: i / 100, y: Math.sin(6.2 * i / 100) }); }
+
+        var chart = new Chart();
+        chart.draw_line(data, "blue"); //Exercise 25
+
+        const data2 = [];
+        for (let i = 0; i < numPoints; i++) { data2.push({ x: i / 100, y: Math.cos(6.2 * i / 100) }); }
+        chart.draw_line(data2, "red"); //Exercise 25
+
+
+    </script>
+</body>
+
+</html>
