@@ -13,7 +13,7 @@
                 // Set Dimensions
                 Chart.X_SIZE = 600;
                 Chart.Y_SIZE = 600;
-                Chart.MARGIN = 40;
+                Chart.MARGIN = 80;
                 Chart.X_MAX = Chart.X_SIZE - Chart.MARGIN * 2;
                 Chart.Y_MAX = Chart.Y_SIZE - Chart.MARGIN * 2;
                 // Append SVG Object to the Page
@@ -33,30 +33,17 @@
                 this.x = d3.scaleTime()
                     .domain([this.xExtent[0], this.xExtent[1]])
                     .range([0, Chart.X_MAX]);
-                // bottom
                 Chart.svg.append("g")
                     .attr("class", "bottom_axis")
                     .attr("transform", "translate(0," + Chart.Y_MAX + ")")
                     .call(d3.axisBottom(this.x))
-                // top
-                Chart.svg.append("g")
-                    .attr("class", "top_axis")
-                    .call(d3.axisTop(this.x));
                 // Y Axis
                 this.y = d3.scaleLinear()
                     .domain([this.yExtent[0], this.yExtent[1]])
                     .range([Chart.Y_MAX, 0]);
-                // left y axis
                 Chart.svg.append("g")
                     .attr("class", "left_axis")
                     .call(d3.axisLeft(this.y));
-                // right y axis
-                Chart.svg.append("g")
-                    .attr("class", "right_axis")
-                    .attr("transform", `translate(${Chart.Y_MAX},0)`)
-                    .call(d3.axisRight(this.y));
-
-
             }
 
             draw_line(data, color) {
@@ -75,27 +62,17 @@
                 var x = d3.scaleTime()
                     .domain([this.xExtent[0], this.xExtent[1]])
                     .range([0, Chart.X_MAX]);
-
-                // bottom
                 Chart.svg.select("g .bottom_axis")
                     .attr("transform", "translate(0," + Chart.Y_MAX + ")")
-                    .call(d3.axisBottom(x))
-                // top
-                Chart.svg.select("g .top_axis")
-                    .call(d3.axisTop(x));
+                    .call(d3.axisBottom(x)
+                        .tickFormat(d3.timeFormat("%m-%Y")))
+
                 // Y Axis
                 var y = d3.scaleLinear()
                     .domain([this.yExtent[0], this.yExtent[1]])
                     .range([Chart.Y_MAX, 0]);
-
-                // left y axis
                 Chart.svg.select("g .left_axis")
                     .call(d3.axisLeft(y));
-                // right y axis
-                Chart.svg.select("g .right_axis")
-                    .attr("transform", `translate(${Chart.Y_MAX},0)`)
-                    .call(d3.axisRight(y));
-
 
                 // Add the line
                 Chart.svg.append("path")
