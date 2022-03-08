@@ -11,9 +11,9 @@
         class Chart {
             constructor() {
                 // Set Dimensions
-                Chart.X_SIZE = 600;
-                Chart.Y_SIZE = 600;
-                Chart.MARGIN = 100;
+                Chart.X_SIZE = 850;
+                Chart.Y_SIZE = 850;
+                Chart.MARGIN = 150;
                 Chart.X_MAX = Chart.X_SIZE - Chart.MARGIN * 2;
                 Chart.Y_MAX = Chart.Y_SIZE - Chart.MARGIN * 2;
                 // Append SVG Object to the Page
@@ -67,9 +67,10 @@
                     .attr("stroke", "black")
                     .text("Date");
 
+                Chart.legend = Chart.svg.append("g")
+                    .attr("transform", "translate(" + (Chart.X_MAX+20) + "," + ((Chart.Y_SIZE - (2 * Chart.MARGIN)) / 2) + ")")
 
-
-
+                Chart.legendEndPos = 0;
 
             }
 
@@ -106,13 +107,32 @@
                     .datum(data)
                     .attr("fill", "none")
                     .attr("stroke", color)
-                    .attr("stroke-width", 1.5)
+                    .attr("stroke-width", 2.5)
                     .attr("d", d3.line()
                         .x(function (d) {
                             return x(new Date(d.date))
                         })
                         .y(function (d) { return y(d.total_cases) })
                     );
+            }
+
+            add_to_legend(label, color) {
+                Chart.legend.append("text")
+                    .attr("y", Chart.legendEndPos)
+                    .attr("x", 20)
+                    .attr("text-anchor", "start")
+                    .attr("stroke", "black")
+                    .text(label);
+
+                const color_square_size = 15;
+                Chart.legend.append("rect")
+                    .attr("y", Chart.legendEndPos - color_square_size)
+                    .attr("x", 0)
+                    .attr("width", color_square_size)
+                    .attr("height", color_square_size)
+                    .attr('fill', color)
+
+                Chart.legendEndPos += 20;
             }
         }
 
@@ -127,10 +147,10 @@
             var continentCovidDataMap = d3.group(filtered, d => d.iso_code)
 
             var colorScale = d3.scaleOrdinal().domain([0, ISO_CODES.length]).range(d3.schemeSet3);
-
             var chart = new Chart();
             for (let i = 0; i < ISO_CODES.length; i++) {
                 chart.draw_line(continentCovidDataMap.get(ISO_CODES[i]), colorScale(i));
+                chart.add_to_legend(continents[i], colorScale(i));
             }
         }
         function displayWeathVsCasesScatterPlot(data) {
