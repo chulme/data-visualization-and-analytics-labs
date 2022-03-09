@@ -134,13 +134,31 @@
                                 .on("click", function (d, i) {
                                     onClickFunction(i.key) //All elements have same location, being the continent.
                                 })
-                                .on("mouseover", function () {
-                                    d3.select(this)
-                                        .attr("stroke-width", Chart.STROKE_WIDTH_ON_HOVER)
+                                .on("mouseover", function (m, s) {
+
+                                    var hoveredLine = d3.select(this);
+                                    const ORIGINAL_COLOR = hoveredLine.attr("stroke");
+                                    const ORIGINAL_STROKE_WIDTH = hoveredLine.attr("stroke-width");
+
+                                    Chart.svg.selectAll(".line")
+                                        .attr("stroke", (d) => d.key == s.key ? ORIGINAL_COLOR : "#f1f1f1")
+                                        .attr("stroke-width", (d) => d.key == s.key ? Chart.STROKE_WIDTH_ON_HOVER : ORIGINAL_STROKE_WIDTH)
+                                    Chart.svg.selectAll(".legendText")
+                                        .style("fill", (d) => d.key == s.key ? "black" : "#f1f1f1")
+                                        .style("font-weight", (d) => d.key == s.key ? "bold" : "normal")
+
+                                    Chart.svg.selectAll(".legendCircle").style("fill", (d) => d.key == s.key ? ORIGINAL_COLOR : "#f1f1f1")
+
                                 })
                                 .on("mouseout", function () {
-                                    d3.select(this)
+                                    //Reset all line colors
+                                    Chart.svg.selectAll(".line")
                                         .attr("stroke-width", Chart.STROKE_WIDTH)
+                                        .attr("stroke", (d, i) => colorScale(d.key));
+                                    Chart.svg.selectAll(".legendText")
+                                        .style("fill", "black")
+                                        .style("font-weight", "normal");
+                                    Chart.svg.selectAll(".legendCircle").style("fill", (d, i) => colorScale(d.key));
                                 })
                         },
                         function (update) {
@@ -181,6 +199,7 @@
                                 enter.append("g")
                                     .attr("class", "legend")
                             legend_element_container.append("circle")
+                                .attr("class", "legendCircle")
                                 .attr("cx", (d, i) => {
                                     circleColumnCounter = ((i) % NUMBER_OF_ELEMENTS_PER_COLUMN == 0) ? circleColumnCounter + 1 : circleColumnCounter;
                                     return Chart.X_MAX + CIRCLE_HORZ_OFFSET + (circleColumnCounter * SPACE_BETWEEN_COLUMNS);
@@ -192,6 +211,7 @@
                                 .attr("r", CIRCLE_RADIUS)
                                 .style("fill", d => colorScale(d.key))
                             legend_element_container.append("text")
+                                .attr("class", "legendText")
                                 .attr("x", (d, i) => {
                                     textColumnCounter = ((i) % NUMBER_OF_ELEMENTS_PER_COLUMN == 0) ? textColumnCounter + 1 : textColumnCounter;
                                     return Chart.X_MAX + TEXT_HORZ_OFFSET + (textColumnCounter * SPACE_BETWEEN_COLUMNS);
