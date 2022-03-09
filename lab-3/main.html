@@ -80,7 +80,7 @@
                 this.update_axis(x, y);
                 this.update_lines(data, x, y, colorScale, onClickFunction);
 
-                this.update_legend(data, colorScale);
+                this.update_legend(data, colorScale, onClickFunction);
             }
 
             get_axis_scales(data) {
@@ -177,7 +177,7 @@
                         })
             }
 
-            update_legend(data, colorScale) {
+            update_legend(data, colorScale, onClickFunction) {
                 const SPACE_OF_ELEMENTS = 5;
                 const NUMBER_OF_ELEMENTS_PER_COLUMN = 30;
                 const SPACE_BETWEEN_ROWS = 20;
@@ -227,6 +227,9 @@
                                             .style("fill", "black")
                                             .style("font-weight", "normal");
                                         Chart.svg.selectAll(".legendCircle").style("fill", (d, i) => colorScale(d.key));
+                                    })
+                                    .on("click", function (d, i) {
+                                        onClickFunction(i.key)
                                     })
 
                             legend_element_container.append("circle")
