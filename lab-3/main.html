@@ -142,6 +142,7 @@
                                     Chart.svg.selectAll(".line")
                                         .attr("stroke", (d) => d.key == s.key ? ORIGINAL_COLOR : "#f1f1f1")
                                         .attr("stroke-width", (d) => d.key == s.key ? Chart.STROKE_WIDTH_ON_HOVER : ORIGINAL_STROKE_WIDTH)
+                                    hoveredLine.raise(); //Display on top
                                     Chart.svg.selectAll(".legendText")
                                         .style("fill", (d) => d.key == s.key ? "black" : "#f1f1f1")
                                         .style("font-weight", (d) => d.key == s.key ? "bold" : "normal")
@@ -201,13 +202,16 @@
                                     .attr("class", "legend")
                                     .on("mouseover", function (m, s) {
 
-                                        var hoveredLine = d3.select(this).select("circle");
-                                        const ORIGINAL_COLOR = hoveredLine.style("fill");
-                                        const ORIGINAL_STROKE_WIDTH = hoveredLine.attr("stroke-width");
+                                        var hoveredCircle = d3.select(this).select("circle");
+                                        const ORIGINAL_COLOR = hoveredCircle.style("fill");
+                                        const ORIGINAL_STROKE_WIDTH = hoveredCircle.attr("stroke-width");
 
-                                        var sel = Chart.svg.selectAll(".line")
+                                        var lines = Chart.svg.selectAll(".line")
                                             .attr("stroke", (d) => d.key == s.key ? ORIGINAL_COLOR : "#f1f1f1")
                                             .attr("stroke-width", (d) => d.key == s.key ? Chart.STROKE_WIDTH_ON_HOVER : Chart.STROKE_WIDTH)
+
+                                        lines.filter(d => (d.key == s.key)).raise()
+
                                         Chart.svg.selectAll(".legendText")
                                             .style("fill", (d) => d.key == s.key ? "black" : "#f1f1f1")
                                             .style("font-weight", (d) => d.key == s.key ? "bold" : "normal")
