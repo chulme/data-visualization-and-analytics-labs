@@ -163,10 +163,12 @@
                         },
                         function (update) {
                             return update
-                                .attr("d", d3.line()
-                                    .x(d => x(new Date(d.date)))
-                                    .y(d => y(d.total_cases))
-                                ).attr("stroke", (d, i) => colorScale(i));
+                                .attr("d", function (d) {
+                                    return d3.line()
+                                        .x(d => x(new Date(d.date)))
+                                        .y(d => y(d.total_cases))
+                                        (d.values)
+                                }).attr("stroke", (d, i) => colorScale(i));
                         },
                         function (exit) {
                             return exit
