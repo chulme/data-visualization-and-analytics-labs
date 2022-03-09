@@ -198,6 +198,37 @@
                             var legend_element_container =
                                 enter.append("g")
                                     .attr("class", "legend")
+                                    .on("mouseover", function (m, s) {
+
+                                        var hoveredLine = d3.select(this).select("circle");
+                                        const ORIGINAL_COLOR = hoveredLine.style("fill");
+                                        const ORIGINAL_STROKE_WIDTH = hoveredLine.attr("stroke-width");
+                                        console.log(ORIGINAL_COLOR);
+
+
+
+                                        var sel = Chart.svg.selectAll(".line")
+                                            .attr("stroke", (d) => d.key == s.key ? ORIGINAL_COLOR : "#f1f1f1")
+                                            .attr("stroke-width", (d) => d.key == s.key ? Chart.STROKE_WIDTH_ON_HOVER : Chart.STROKE_WIDTH)
+                                        console.log(sel.size())
+                                        Chart.svg.selectAll(".legendText")
+                                            .style("fill", (d) => d.key == s.key ? "black" : "#f1f1f1")
+                                            .style("font-weight", (d) => d.key == s.key ? "bold" : "normal")
+
+                                        Chart.svg.selectAll(".legendCircle").style("fill", (d) => d.key == s.key ? ORIGINAL_COLOR : "#f1f1f1")
+
+                                    })
+                                    .on("mouseout", function () {
+                                        //Reset all line colors
+                                        Chart.svg.selectAll(".line")
+                                            .attr("stroke-width", Chart.STROKE_WIDTH)
+                                            .attr("stroke", (d, i) => colorScale(d.key));
+                                        Chart.svg.selectAll(".legendText")
+                                            .style("fill", "black")
+                                            .style("font-weight", "normal");
+                                        Chart.svg.selectAll(".legendCircle").style("fill", (d, i) => colorScale(d.key));
+                                    })
+
                             legend_element_container.append("circle")
                                 .attr("class", "legendCircle")
                                 .attr("cx", (d, i) => {
