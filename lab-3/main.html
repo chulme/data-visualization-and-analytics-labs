@@ -203,14 +203,10 @@
                                         var hoveredLine = d3.select(this).select("circle");
                                         const ORIGINAL_COLOR = hoveredLine.style("fill");
                                         const ORIGINAL_STROKE_WIDTH = hoveredLine.attr("stroke-width");
-                                        console.log(ORIGINAL_COLOR);
-
-
 
                                         var sel = Chart.svg.selectAll(".line")
                                             .attr("stroke", (d) => d.key == s.key ? ORIGINAL_COLOR : "#f1f1f1")
                                             .attr("stroke-width", (d) => d.key == s.key ? Chart.STROKE_WIDTH_ON_HOVER : Chart.STROKE_WIDTH)
-                                        console.log(sel.size())
                                         Chart.svg.selectAll(".legendText")
                                             .style("fill", (d) => d.key == s.key ? "black" : "#f1f1f1")
                                             .style("font-weight", (d) => d.key == s.key ? "bold" : "normal")
@@ -265,9 +261,22 @@
             }
         }
 
+        function displayCovidCasesWorld() {
 
 
-        function displayCovidCasesOverTimeGraph() {
+            var filtered = raw_data.filter(d => d.iso_code == "OWID_WRL");
+            var colorScale = d3.scaleOrdinal().domain([0]).range(d3.schemeSet3);
+
+            var continentData = new Map()
+            continentData.set("World", filtered)
+            var finalData = Array.from(continentData, function (item) {
+                return { key: item[0], values: item[1] }
+            });
+            chart.draw_line(finalData, colorScale, displayCovidCasesPerContinent);
+
+        }
+
+        function displayCovidCasesPerContinent() {
 
             const ISO_CODES = ["OWID_ASI", "OWID_AFR", "OWID_EUR", "OWID_NAM", "OWID_SAM", "OWID_OCE"];
             const continents = ["Asia", "Africa", "Europe", "North America", "South America", "Oceania"];
@@ -286,11 +295,12 @@
             var finalData = Array.from(continentData, function (item) {
                 return { key: item[0], values: item[1] }
             });
-            chart.draw_line(finalData, colorScale, displayCovidCasesForContinent);
+            console.log(finalData)
+            chart.draw_line(finalData, colorScale, displayCovidCasesPerCountry);
 
         }
 
-        function displayCovidCasesForContinent(continent) {
+        function displayCovidCasesPerCountry(continent) {
 
             var filtered = raw_data.filter(d => d.continent == continent);
             var countryCovidDataMap = d3.group(filtered, d => d.location)
@@ -321,7 +331,7 @@
                 window.chart = new Chart();
                 window.raw_data = data; //global data;
             })
-            .then(displayCovidCasesOverTimeGraph)
+            .then(displayCovidCasesWorld)
             .then(displayWeathVsCasesScatterPlot);
     </script>
 </body>
