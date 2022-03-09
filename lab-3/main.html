@@ -77,7 +77,7 @@
             draw_line(data, colorScale, onClickFunction) {
 
                 var [x, y] = this.get_axis_scales(data);
-                this.update_axis(data, x, y);
+                this.update_axis(x, y);
                 this.update_lines(data, x, y, colorScale, onClickFunction);
 
                 this.update_legend(data, colorScale);
@@ -103,7 +103,7 @@
                 return [x, y];
             }
 
-            update_axis(data, x, y) {
+            update_axis(x, y) {
                 Chart.svg.select("g .bottom_axis")
                     .attr("transform", "translate(0," + Chart.Y_MAX + ")")
                     .call(d3.axisBottom(x)
@@ -222,13 +222,11 @@
             var filtered = raw_data.filter(d => ISO_CODES.includes(d.iso_code));
 
             var continentCovidDataMap = d3.group(filtered, d => d.iso_code)
-            console.log([continents]);
             var colorScale = d3.scaleOrdinal().domain([continents]).range(d3.schemeSet3);
 
             var continentData = new Map()
             for (let i = 0; i < ISO_CODES.length; i++) {
                 continentData.set(continents[i], continentCovidDataMap.get(ISO_CODES[i]))
-                //chart.add_to_legend(continents[i], colorScale(continents[i]));
             }
 
             var finalData = Array.from(continentData, function (item) {
@@ -239,18 +237,12 @@
         }
 
         function displayCovidCasesForContinent(continent) {
-            const continents = ["Asia", "Africa", "Europe", "North America", "South America", "Oceania"];
-            const ISO_CODES = ["OWID_ASI", "OWID_AFR", "OWID_EUR", "OWID_NAM", "OWID_SAM", "OWID_OCE"];
 
-            console.log("Displaying continents!");
             var filtered = raw_data.filter(d => d.continent == continent);
             var countryCovidDataMap = d3.group(filtered, d => d.location)
-
-            console.log([countryCovidDataMap.keys()])
-            var colorScale = d3.scaleOrdinal().domain([continents]).range(d3.schemeSet3);
+            var colorScale = d3.scaleOrdinal().domain([countryCovidDataMap.keys()]).range(d3.schemeSet3);
 
             var countryData = new Map()
-            var i = 0;
             countryCovidDataMap.forEach(function (val, key) {
                 countryData.set(key, val)
             })
