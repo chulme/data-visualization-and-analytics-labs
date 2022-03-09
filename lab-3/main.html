@@ -117,7 +117,7 @@
 
                 // Add the line
                 line
-                    .data(data)
+                    .data(data, d => d.key)
                     .join(
                         function (enter) {
                             return enter.append("path")
@@ -139,7 +139,6 @@
                                     var hoveredLine = d3.select(this);
                                     const ORIGINAL_COLOR = hoveredLine.attr("stroke");
                                     const ORIGINAL_STROKE_WIDTH = hoveredLine.attr("stroke-width");
-
                                     Chart.svg.selectAll(".line")
                                         .attr("stroke", (d) => d.key == s.key ? ORIGINAL_COLOR : "#f1f1f1")
                                         .attr("stroke-width", (d) => d.key == s.key ? Chart.STROKE_WIDTH_ON_HOVER : ORIGINAL_STROKE_WIDTH)
@@ -172,9 +171,9 @@
                         },
                         function (exit) {
                             return exit
-                                .transition()
-                                .duration(1000)
-                                .attr("stroke", "white")
+                                //.transition()
+                                //.duration(1000)
+                                // .attr("stroke", "white")
                                 .remove();
                         })
             }
@@ -264,16 +263,14 @@
         }
 
         function displayCovidCasesWorld() {
-
-
             var filtered = raw_data.filter(d => d.iso_code == "OWID_WRL");
-            var colorScale = d3.scaleOrdinal().domain([0]).range(d3.schemeSet3);
-
             var continentData = new Map()
             continentData.set("World", filtered)
             var finalData = Array.from(continentData, function (item) {
                 return { key: item[0], values: item[1] }
             });
+            var colorScale = d3.scaleOrdinal().domain([finalData]).range(d3.schemeSet3);
+
             chart.draw_line(finalData, colorScale, displayCovidCasesPerContinent);
 
         }
@@ -287,7 +284,6 @@
             var filtered = raw_data.filter(d => ISO_CODES.includes(d.iso_code));
 
             var continentCovidDataMap = d3.group(filtered, d => d.iso_code)
-            var colorScale = d3.scaleOrdinal().domain([continents]).range(d3.schemeSet3);
 
             var continentData = new Map()
             for (let i = 0; i < ISO_CODES.length; i++) {
@@ -297,7 +293,9 @@
             var finalData = Array.from(continentData, function (item) {
                 return { key: item[0], values: item[1] }
             });
-            console.log(finalData)
+
+            var colorScale = d3.scaleOrdinal().domain([finalData]).range(d3.schemeSet3);
+
             chart.draw_line(finalData, colorScale, displayCovidCasesPerCountry);
 
         }
