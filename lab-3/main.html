@@ -120,17 +120,7 @@
                     .data(data, d => d.key)
                     .join(
                         function (enter) {
-                            return enter.append("path")
-                                .attr("class", "line")
-                                .attr("fill", "none")
-                                .attr("stroke-width", Chart.STROKE_WIDTH)
-                                .attr("d", function (d) {
-                                    return d3.line()
-                                        .x(d => x(new Date(d.date)))
-                                        .y(d => y(d.total_cases))
-                                        (d.values)
-                                })
-                                .attr("stroke", d => colorScale(d.key))
+                            var line = enter.append("path")
                                 .on("click", function (d, i) {
                                     onClickFunction(i.key) //All elements have same location, being the continent.
                                 })
@@ -160,6 +150,21 @@
                                         .style("font-weight", "normal");
                                     Chart.svg.selectAll(".legendCircle").style("fill", (d, i) => colorScale(d.key));
                                 })
+
+                            line.transition()
+                                .duration(250)
+                                //.delay((d, i) => i * 200)
+                                .attr("class", "line")
+                                .attr("fill", "none")
+                                .attr("stroke-width", Chart.STROKE_WIDTH)
+                                .attr("d", function (d) {
+                                    return d3.line()
+                                        .x(d => x(new Date(d.date)))
+                                        .y(d => y(d.total_cases))
+                                        (d.values)
+                                })
+                                .attr("stroke", d => colorScale(d.key))
+                            return line;
                         },
                         function (update) {
                             return update
@@ -275,7 +280,7 @@
             });
             var colorScale = d3.scaleOrdinal().domain([finalData]).range(d3.schemeSet3);
 
-            chart.draw_line(finalData, colorScale, displayCovidCasesPerContinent);
+            covidCasesGraph.draw_line(finalData, colorScale, displayCovidCasesPerContinent);
 
         }
 
@@ -300,7 +305,7 @@
 
             var colorScale = d3.scaleOrdinal().domain([finalData]).range(d3.schemeSet3);
 
-            chart.draw_line(finalData, colorScale, displayCovidCasesPerCountry);
+            covidCasesGraph.draw_line(finalData, colorScale, displayCovidCasesPerCountry);
 
         }
 
@@ -317,7 +322,7 @@
             var finalData = Array.from(countryData, function (item) {
                 return { key: item[0], values: item[1] }
             });
-            chart.draw_line(finalData, colorScale, displayVaccinesGraph)
+            covidCasesGraph.draw_line(finalData, colorScale, displayVaccinesGraph)
 
         }
 
@@ -326,13 +331,14 @@
         }
         function displayWeathVsCasesScatterPlot(data) {
             console.log("World");
+            
 
 
         }
 
         d3.csv('https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv')
             .then(function (data) {
-                window.chart = new Chart();
+                window.covidCasesGraph = new Chart();
                 window.raw_data = data; //global data;
             })
             .then(displayCovidCasesWorld)
