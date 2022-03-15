@@ -70,6 +70,26 @@
                     .attr("text-anchor", "middle")
                     .attr("stroke", "black")
                     .text("Date");
+
+                var buttonWidth = 75;
+                var buttonHeight = 25;
+                Chart.button = Chart.svg.append("g")
+                    .attr("transform", "translate(0,-40)")
+                Chart.button.append("rect")
+                    .attr("height", buttonHeight)
+                    .attr("width", buttonWidth)
+                    .attr("fill", "#e7e7e7")
+                    .style("stroke", "black")
+                    .style("stroke-width", "1");
+                Chart.button.append("text")
+                    .text("Back")
+                    .attr("dy", "0.2em")
+                    .style("text-anchor", "middle")
+                    .attr("x", (buttonWidth / 2))
+                    .attr("y", (buttonHeight / 2));
+
+                Chart.prevData = []
+                Chart.layoutIndex = 0;
             }
 
 
@@ -79,8 +99,8 @@
                 var [x, y] = this.get_axis_scales(data);
                 this.update_axis(x, y);
                 this.update_lines(data, x, y, colorScale, onClickFunction);
-
                 this.update_legend(data, colorScale, onClickFunction);
+                this.update_back_button(data, colorScale, onClickFunction);
             }
 
             get_axis_scales(data) {
@@ -114,7 +134,6 @@
 
             update_lines(data, x, y, colorScale, onClickFunction) {
                 var line = Chart.svg.selectAll(".line")
-
                 // Add the line
                 line
                     .data(data, d => d.key)
@@ -196,11 +215,14 @@
                 var circleColumnCounter = -1;
                 var textColumnCounter = -1;
 
+                var _this = this;
                 var legend = Chart.svg
                     .selectAll('g.legend')
                     .data(data, d => d.key)
                     .join(
                         function (enter) {
+
+                            Chart.back_elements = { data: data, colorScale: colorScale, onClickFunction: onClickFunction };
 
                             var legend_element_container =
                                 enter.append("g")
@@ -269,6 +291,27 @@
                     )
 
             }
+
+            update_back_button(data, colorScale, onClickFunction) {
+                Chart.prevData.push({ data: data, colorScale: colorScale, onClickFunction: onClickFunction });
+
+                if (Chart.layoutIndex == 0) {
+                    Chart.button
+                        .style("visibility", "hidden");
+                } else {
+                    Chart.button
+                        .style("visibility", "visible");
+                }
+                var _this = this;
+                Chart.button.on("click", function () {
+                    Chart.layoutIndex -= 2;
+                    var prevData = Chart.prevData[Chart.layoutIndex];
+                    _this.draw_line(prevData.data, prevData.colorScale, prevData.onClickFunction)
+                });
+
+                Chart.layoutIndex++;
+
+            }
         }
 
         function displayCovidCasesWorld() {
@@ -329,12 +372,302 @@
         function displayVaccinesGraph(continent) {
             console.log("Displaying vaccine graph")
         }
-        function displayWeathVsCasesScatterPlot(data) {
-            console.log("World");
-            
+        function displayWeathVsCasesScatterPlot() {
+
+            // Process data to get data grouped per country, while removing non-country rows
+            var maxDate = new Date(d3.max(raw_data, d => new Date(d.date)))
+            var filtered = raw_data
+                .filter(d => new Date(d.date).getTime() === maxDate.getTime())
+                .filter(d => !d.iso_code.includes("OWID"))
+                .filter(d => d.gdp_per_capita > 0)//50,000,000
+
+            // .filter(d => d.gdp_per_capita < 100000)//50,000,000
+            // .filter(d => d.total_cases < 50000000)//50,000,000
+
+            var countryCovidDataMap = d3.group(filtered, d => d.location)
+
+            var continents = Array.from(d3.group(filtered, d => d.continent).keys())
+            var colorScale = d3.scaleOrdinal().domain([continents]).range(d3.schemeSet3);
+
+            var countryData = new Map()
+            countryCovidDataMap.forEach(function (val, key) {
+                countryData.set(key, val[0])
+            })
+            var data = Array.from(countryData, function (item) {
+                return { key: item[0], value: item[1] }
+            });
+
+            // Initialise graph 
+
+            // Set Dimensions
+            X_SIZE = 1550;
+            Y_SIZE = 750;
+            X_MARGIN = 350;
+            Y_MARGIN = 50;
+
+            X_MAX = X_SIZE - X_MARGIN * 2;
+            Y_MAX = Y_SIZE - Y_MARGIN * 2;
+            STROKE_WIDTH = 3.5;
+            STROKE_WIDTH_ON_HOVER = 6.5
+
+            // Append SVG Object to the Page
+            var svg = d3.select("body")
+                .append("svg")
+                .attr('width', X_SIZE)
+                .attr('height', Y_SIZE)
+                .append("g")
+                .attr("transform", "translate(" + X_MARGIN + "," + Y_MARGIN + ")");
+
+            svg.append("text")
+                .attr("transform", "translate(" + (X_MAX) / 2 + "," + -20 + ")")
+                .attr("font-size", "24px")
+                .text("Relation between the relative 'wealth' of a population and the evolution of the pandemic.")
+                .style("text-anchor", "middle");
+
+            // Create extents
+            var flattened_data = [].concat.apply([], data.map(e => e.value));
+            var xExtent = d3.extent(flattened_data, d => parseInt(d.gdp_per_capita))
+            var yExtent = d3.extent(flattened_data, d => parseInt(d.total_cases));
+
+            const numberOfVerticalTicks = 6;
+            const numberOfHorizontalTicks = 7;
+
+            // X Axis
+            var x = d3.scaleLog()
+                .base(2)
+                .domain([xExtent[0], xExtent[1]])
+                .range([0, X_MAX]);
+
+            //Bottom  
+            svg.append("g")
+                .attr("class", "bottom_axis")
+                .call(d3.axisBottom(x).ticks(numberOfVerticalTicks))
+                .attr("transform", "translate(0, " + Y_MAX + ")")
+                .append("text")
+                .attr("x", X_MAX / 2)
+                .attr("y", 40)
+                .attr("text-anchor", "middle")
+                .attr("stroke", "black")
+                .text("GDP per capita");
+
+            // Y Axis
+            var y = d3.scaleLog()
+                .domain([yExtent[0], yExtent[1]])
+                .range([Y_MAX, 0])
+                .base(10)
+
+            svg.append("g")
+                .attr("class", "left_axis")
+                .call(d3.axisLeft(y).ticks(numberOfHorizontalTicks))
+                .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("x", -(Y_MAX / 2))
+                .attr("y", -25)
+                .attr("dy", "-5.1em")
+                .attr("text-anchor", "middle")
+                .attr("stroke", "black")
+                .text("Covid Cases");
+
+            //Gridlines
+            svg.selectAll("horizontalGridline").data(y.ticks(numberOfHorizontalTicks)).enter()
+                .append("line")
+                .attr("x1", 0)
+                .attr("x2", X_MAX)
+                .attr("y1", d => y(d))
+                .attr("y2", d => y(d))
+                .attr("stroke", "#d3d3d3")
+                .attr("stroke-width", "0.5px");
+
+            svg.selectAll("verticalGridline").data(x.ticks(numberOfVerticalTicks)).enter()
+                .append("line")
+                .attr("x1", d => x(d))
+                .attr("x2", d => x(d))
+                .attr("y1", 0)
+                .attr("y2", Y_MAX)
+
+                .attr("stroke", "#d3d3d3")
+                .attr("stroke-width", "0.5px");
+
+            // Add Info Box
+            const detailBoxHorzOffset = 10;
+            const detailBoxHeight = 75;
+            const detailBoxWidth = 200;
+            const spaceBetweenTextRows = 20;
+
+            var button = svg.append("g")
+                .attr("transform", "translate(" + X_MAX + "," + 5 + ")")
+            button.append("rect")
+                .attr("height", detailBoxHeight)
+                .attr("width", detailBoxWidth)
+                .attr("fill", "#e7e7e7")
+                .style("stroke", "black")
+                .style("stroke-width", "1");
+            button.append("text")
+                .text("Click on a datapoint")
+                .attr("dy", "0.2em")
+                .style("text-anchor", "middle")
+                .attr("x", (detailBoxWidth / 2))
+                .attr("y", (detailBoxHeight / 2) - spaceBetweenTextRows);
+            button.append("text")
+                .text("for more information.")
+                .attr("dy", "0.2em")
+                .style("text-anchor", "middle")
+                .attr("x", (detailBoxWidth / 2))
+                .attr("y", (detailBoxHeight / 2) + spaceBetweenTextRows);
+
+            // Add dots
+            const dotRadius = 3.5;
+            const selectedDotRadius = 5;
+            svg.append('g')
+                .selectAll("dot")
+                .data(data, d => d.key)
+                .join("circle")
+                .attr("class", "scatterPlotPoint")
+                .attr("cx", (d) => x(d.value.gdp_per_capita))
+                .attr("cy", (d) => y(d.value.total_cases))
+                .attr("r", 3.5)
+                .style("fill", (d, i) => colorScale(d.value.continent))
+                .on("mouseover", function (m, s) {
+
+                    //Emphasise hovered element
+                    var hoveredCircle = d3.select(this);
+                    const ORIGINAL_COLOR = hoveredCircle.style("fill");
+                    svg.selectAll(".scatterPlotPoint")
+                        .style("fill", (d) => d.key == s.key ? ORIGINAL_COLOR : "#f1f1f1")
+                        .attr("r", (d) => d.key == s.key ? selectedDotRadius : dotRadius)
+                    hoveredCircle.raise(); //Display on top
+
+                    //Emphasise on legend
+                    svg.selectAll(".legendText")
+                        .style("fill", (d) => {
+                            return d == s.value.continent ? "black" : "#f1f1f1"
+                        })
+                        .style("font-weight", (d) => d == s.value.continent ? "bold" : "normal")
+                    svg.selectAll(".legendCircle").style("fill", (d) => d == s.value.continent ? ORIGINAL_COLOR : "#f1f1f1")
+
+                    //Update info box
+                    button.selectAll("text").remove()
+                    button.append("text")
+                        .text(s.value.location)
+                        .attr("dy", "0.2em")
+                        .style("text-anchor", "middle")
+                        .style("font-weight", "bold")
+                        .attr("x", (detailBoxWidth / 2))
+                        .attr("y", (detailBoxHeight / 2) - spaceBetweenTextRows);
+
+                    button.append("text")
+                        .text("GDP per capita: " + s.value.gdp_per_capita)
+                        .attr("dy", "0.2em")
+                        .style("text-anchor", "middle")
+                        .attr("x", (detailBoxWidth / 2))
+                        .attr("y", (detailBoxHeight / 2));
+                    button.append("text")
+                        .text("Covid Cases: " + s.value.total_cases)
+                        .attr("dy", "0.2em")
+                        .style("text-anchor", "middle")
+                        .attr("x", (detailBoxWidth / 2))
+                        .attr("y", (detailBoxHeight / 2) + spaceBetweenTextRows);
+                })
+                .on("mouseout", function (m, s) {
+                    //Reset all line colors
+                    svg.selectAll(".scatterPlotPoint")
+                        .attr("r", dotRadius)
+                        .style("fill", (d, i) => {
+                            return colorScale(d.value.continent)
+                        });
+                    svg.selectAll(".legendText")
+                        .style("fill", "black")
+                        .style("font-weight", "normal");
+                    svg.selectAll(".legendCircle").style("fill", (d, i) => colorScale(d));
+
+                })
+
+
+            //Legend
+            const SPACE_OF_ELEMENTS = 5;
+            const NUMBER_OF_ELEMENTS_PER_COLUMN = 30;
+            const SPACE_BETWEEN_ROWS = 20;
+            const SPACE_BETWEEN_COLUMNS = 150;
+            const CIRCLE_HORZ_OFFSET = 30;
+            const TEXT_HORZ_OFFSET = 40;
+            const CIRCLE_RADIUS = 6;
+            const MAX_LABEL_LENGTH = 15;
+            var circleColumnCounter = -1;
+            var textColumnCounter = -1;
+            var legend = svg
+                .selectAll('g.legendScatter')
+                .data(continents)
+                .join(
+                    function (enter) {
+
+                        var legend_element_container =
+                            enter.append("g")
+                                .attr("class", "legendScatter")
+                                .on("mouseover", function (m, s) {
+
+                                    var hoveredCircle = d3.select(this).select("circle");
+                                    const ORIGINAL_COLOR = hoveredCircle.style("fill");
+                                    var points = svg.selectAll(".scatterPlotPoint")
+                                        .style("fill", (d) => {
+                                            return d.value.continent == s ? ORIGINAL_COLOR : "#f1f1f1"
+                                        })
+
+                                    points.filter(d => (d.value.continent == s)).raise()
+
+                                    svg.selectAll(".legendText")
+                                        .style("fill", (d) => d == s ? "black" : "#f1f1f1")
+                                        .style("font-weight", (d) => d == s ? "bold" : "normal")
+                                    svg.selectAll(".legendCircle").style("fill", (d) => {
+                                        return d == s ? ORIGINAL_COLOR : "#f1f1f1"
+                                    })
+
+
+                                })
+                                .on("mouseout", function () {
+                                    //Reset all line colors
+                                    svg.selectAll(".scatterPlotPoint")
+                                        .style("fill", (d, i) => colorScale(d.value.continent));
+                                    svg.selectAll(".legendText")
+                                        .style("fill", "black")
+                                        .style("font-weight", "normal");
+                                    svg.selectAll(".legendCircle").style("fill", (d, i) => {
+                                        return colorScale(d);
+                                    })
+                                })
+
+                        legend_element_container.append("circle")
+                            .attr("class", "legendCircle")
+                            .attr("cx", (d, i) => {
+                                return X_MAX + CIRCLE_HORZ_OFFSET;
+                            })
+                            .attr('cy', (d, i) => {
+                                return (i * SPACE_BETWEEN_ROWS + (Y_MAX / 2) - continents.length * SPACE_OF_ELEMENTS)
+                            })
+                            .attr("r", CIRCLE_RADIUS)
+                            .style("fill", d =>
+                                colorScale(d)
+                            )
+                        legend_element_container.append("text")
+                            .attr("class", "legendText")
+                            .attr("x", (d, i) => {
+                                return X_MAX + TEXT_HORZ_OFFSET;
+                            })
+                            .attr('y', (d, i) => {
+                                return (i * SPACE_BETWEEN_ROWS + CIRCLE_RADIUS + (Y_MAX / 2) - continents.length * SPACE_OF_ELEMENTS)
+                            })
+                            .attr("text-anchor", "start")
+                            .text((d, i) => {
+                                return d;
+                            })
+                    },
+                    function (exit) {
+                        exit.remove()
+                    }
+                )
 
 
         }
+
 
         d3.csv('https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv')
             .then(function (data) {
