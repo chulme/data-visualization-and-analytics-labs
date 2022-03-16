@@ -33,6 +33,7 @@
 
 
                 Chart.svg.append("text")
+                    .attr("class", "title")
                     .attr("transform", "translate(" + (Chart.X_MAX) / 2 + "," + -20 + ")")
                     .attr("font-size", "24px")
                     .text("COVID-19 cases over time")
@@ -96,13 +97,19 @@
 
 
 
-            draw_line(data, colorScale, onClickFunction) {
+            draw_line(data, colorScale, onClickFunction, title) {
 
                 var [x, y] = this.get_axis_scales(data);
                 this.update_axis(x, y);
                 this.update_lines(data, x, y, colorScale, onClickFunction);
                 this.update_legend(data, colorScale, onClickFunction);
-                this.update_back_button(data, colorScale, onClickFunction);
+                this.update_back_button(data, colorScale, onClickFunction, title);
+                this.update_title(title)
+            }
+
+            update_title(title) {
+                Chart.svg.select(".title")
+                    .text(title);
             }
 
             get_axis_scales(data) {
@@ -333,8 +340,8 @@
 
             }
 
-            update_back_button(data, colorScale, onClickFunction) {
-                Chart.prevData.push({ data: data, colorScale: colorScale, onClickFunction: onClickFunction });
+            update_back_button(data, colorScale, onClickFunction, title) {
+                Chart.prevData.push({ data: data, colorScale: colorScale, onClickFunction: onClickFunction, title: title });
 
                 if (Chart.layoutIndex == 0) {
                     Chart.button
@@ -347,7 +354,7 @@
                 Chart.button.on("click", function () {
                     Chart.layoutIndex -= 2;
                     var prevData = Chart.prevData[Chart.layoutIndex];
-                    _this.draw_line(prevData.data, prevData.colorScale, prevData.onClickFunction)
+                    _this.draw_line(prevData.data, prevData.colorScale, prevData.onClickFunction, prevData.title)
                 });
 
                 Chart.layoutIndex++;
@@ -364,7 +371,7 @@
             });
             var colorScale = d3.scaleOrdinal().domain([finalData]).range(d3.schemeSet3);
 
-            covidCasesGraph.draw_line(finalData, colorScale, displayCovidCasesPerContinent);
+            covidCasesGraph.draw_line(finalData, colorScale, displayCovidCasesPerContinent, "COVID-19 cases over time");
 
         }
 
@@ -390,7 +397,7 @@
             finalData.sort((x, y) => d3.ascending(x.key, y.key));
 
 
-            covidCasesGraph.draw_line(finalData, continentColorScale, displayCovidCasesPerCountry);
+            covidCasesGraph.draw_line(finalData, continentColorScale, displayCovidCasesPerCountry, "COVID-19 cases over time, per continent");
 
         }
 
@@ -407,7 +414,7 @@
             var finalData = Array.from(countryData, function (item) {
                 return { key: item[0], values: item[1] }
             });
-            covidCasesGraph.draw_line(finalData, colorScale, displayVaccinesGraph)
+            covidCasesGraph.draw_line(finalData, colorScale, displayVaccinesGraph, "COVID-19 cases over time in " + continent)
 
         }
 
