@@ -158,6 +158,8 @@
             }
 
             update_lines(data, x, y, colorScale, onClickFunction) {
+                console.log(colorScale("Afganistan"))
+
                 var line = Chart.svg.selectAll(".line")
                 // Add the line
                 line
@@ -217,7 +219,9 @@
                                     //Reset all line colors
                                     Chart.svg.selectAll(".line")
                                         .attr("stroke-width", Chart.STROKE_WIDTH)
-                                        .attr("stroke", (d, i) => colorScale(d.key));
+                                        .attr("stroke", (d, i) => {
+                                            return colorScale(d.key)
+                                        });
                                     Chart.svg.selectAll(".legendText")
                                         .style("fill", "black")
                                         .style("font-weight", "normal");
@@ -359,10 +363,6 @@
                                                 return ORIGINAL_COLOR
                                             })
 
-
-
-
-
                                     })
                                     .on("mouseout", function () {
                                         //Reset all line colors
@@ -482,7 +482,7 @@
             var finalData = Array.from(continentData, function (item) {
                 return { key: item[0], values: item[1] }
             });
-            var colorScale = d3.scaleOrdinal().domain([finalData]).range(d3.schemeSet3);
+            var colorScale = d3.scaleOrdinal().domain([finalData]).range(d3.schemeSet1);
 
             covidCasesGraph.draw_line(finalData, colorScale, displayCovidCasesPerContinent, "COVID-19 Cases");
 
@@ -563,7 +563,7 @@
 
             // Set Dimensions
             X_SIZE = 2350;
-            Y_SIZE = 750;
+            Y_SIZE = 650;
             X_MARGIN = 250;
             Y_MARGIN = 100;
 
@@ -1194,8 +1194,6 @@
                 var vaccinationExtents = d3.extent(vaccinationMap, d => {
                     return parseInt(d[1]);
                 })
-                console.log("vacc map", vaccinationMap)
-                console.log("extents", vaccinationExtents)
                 var vaccinationColorScale = d3.scaleSqrt()
                     .domain(vaccinationExtents)
                     .range(["red", "blue"]);
@@ -1206,7 +1204,6 @@
                     .enter()
                     .append("circle")
                     .attr("fill", d => {
-                        console.log(d[0], vaccinationMap.get(d[0]))
                         return vaccinationColorScale(+vaccinationMap.get(d[0]))
                     })
                     .attr("stroke", "black")
@@ -1305,7 +1302,6 @@
 
                 vaccinationMap.set(key, vaccinationMax)
             })
-            console.log(vaccinationMap)
             return vaccinationMap;
         }
         d3.csv("https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/vaccinations.csv")
