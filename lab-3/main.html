@@ -6,7 +6,9 @@
 </head>
 
 <body>
-    <script src='https://d3js.org/d3.v7.min.js'></script>
+    <script src='https://d3js.org/d3.v7.js'></script>
+    <script src="https://unpkg.com/topojson@3"></script>
+
     <script>
         var continentColorScale;
 
@@ -363,6 +365,8 @@
         }
 
         function displayCovidCasesWorld() {
+            window.covidCasesGraph = new Chart();
+
             var filtered = raw_data.filter(d => d.iso_code == "OWID_WRL");
             var continentData = new Map()
             continentData.set("World", filtered)
@@ -752,14 +756,168 @@
 
         }
 
+        function displayCovidMap() {
+            // Set Dimensions
+            X_SIZE = 1550;
+            Y_SIZE = 750;
+            X_MARGIN = 350;
+            Y_MARGIN = 50;
+
+            X_MAX = X_SIZE - X_MARGIN * 2;
+            Y_MAX = Y_SIZE - Y_MARGIN * 2;
+            STROKE_WIDTH = 3.5;
+            STROKE_WIDTH_ON_HOVER = 6.5
+
+            // Append SVG Object to the Page
+            var svg = d3.select("body")
+                .append("svg")
+                .attr('width', X_SIZE)
+                .attr('height', Y_SIZE)
+                .append("g")
+                .attr("transform", "translate(" + X_MARGIN + "," + Y_MARGIN + ")");
+
+            svg.append("text")
+                .attr("transform", "translate(" + (X_MAX) / 2 + "," + -20 + ")")
+                .attr("font-size", "24px")
+                .text("Covid Evolution Map.")
+                .style("text-anchor", "middle");
+
+            //Load map data
+            d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json").then(mapData => {
+
+                //Create map
+                const projection = d3.geoMercator()
+                    .scale(99)
+                    .translate([X_MAX / 2, Y_MAX / 2]);
+                const path = d3.geoPath(projection);
+
+                const countries = topojson
+                    .feature(mapData, mapData.objects.countries);
+                //console.log(countries.features)
+
+
+
+
+
+
+                svg.selectAll("path")
+                    .data(countries.features)
+                    .enter()
+                    .append("path")
+                    .attr("class", "country")
+                    .attr("d", (d) => path(d))
+                    .attr("fill", "#f1f1f1");
+                var filtered = raw_data.filter(d => !d.iso_code.includes("OWID"));
+                var countryCovidDataMap = d3.group(filtered, d => d.location)
+                var colorScale = d3.scaleOrdinal().domain([countryCovidDataMap.keys()]).range(d3.schemeSet3);
+
+                var countryData = new Map()
+                countryCovidDataMap.forEach(function (val, key) {
+                    countryData.set(key, val)
+                })
+                // var finalData = Array.from(countryData, function (item) {
+                //     return { key: item[0], values: item[1] }
+                // });
+
+                //Rename to align with OWID dataset.
+                countries.features.forEach(element => {
+                    switch (element.properties.name) {
+                        case "United States of America":
+                            element.properties.name = "United States"
+                            break;
+                        case "Dem. Rep. Congo":
+                            element.properties.name = "Democratic Republic of Congo"
+                            break;
+                        case "Falkland Is.":
+                            element.properties.name = "Falkland Islands"
+                            break;
+                        case "Solomon Is.":
+                            element.properties.name = "Solomon Islands"
+                            break;
+                        case "N. Cyprus":
+                            element.properties.name = "North Cyprus"
+                        case "S. Sudan":
+                            element.properties.name = "South Sudan"
+                            break
+                        case "Eq. Quinea":
+                            element.properties.name = "Equatorial Guinea"
+                        default:
+                            break;
+                    }
+                });
+
+                //Create country centroids
+                var countryCentroids = new Map(countries.features.map(d => {
+                    const centroid = path.centroid(d.geometry);
+                    return [d.properties.name, { x: centroid[0], y: centroid[1] }]
+                }))
+
+                //Append country centroids to country.features
+                //console.log(countryData)
+                //console.log(countryCentroids)
+
+
+                countryData.forEach((data, key) => {
+                    if (countryCentroids.has(key)) {
+                        data.centroid = countryCentroids.get(key)
+                    } else {
+                        //console.log("No centroid found for " + key)
+                        countryData.delete(key)
+                    }
+                })
+                // countryCentroids.forEach((centroid, country) => {
+                //     if (countryData.has(country)) {
+                //         countryData.get(country).centroid = centroid
+                //     } else {
+                //         console.log(country + " does not exist!");
+                //     }
+                // });
+
+                // var finalData = Array.from(countryData, function (item) {
+                //     console.log("item: ", item.centroid)
+                //     return { key: item[0], values: item[1] }
+                // });
+
+                console.log(countryData)
+                d3.extent(countryData, d => {
+                    console.log(d)
+                })
+                var radiusScale = d3.scaleLinear()
+                    .domain([0, 10])
+                    .range([0, 5]);
+
+                svg.append("g")
+                    .selectAll("circle")
+                    .data(countryData)
+                    .enter()
+                    .append("circle")
+                    .attr("cx", d => {
+                        return d[1].centroid.x
+                    })
+                    .attr("cy", d => {
+                        return d[1].centroid.y
+                    })
+                    .attr("r", d => {
+                        var radius = d[1][d[1].length - 1].total_cases / 1000000;
+                        if (d[1][d[1].length - 1].continent == "Africa") {
+                            radius *= 100
+                            console.log(d[1][d[1].length - 1].location, radius)
+                        }
+                        return radius
+                    })
+
+
+            })
+
+        }
 
         d3.csv('https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv')
             .then(function (data) {
-                window.covidCasesGraph = new Chart();
                 window.raw_data = data; //global data;
             })
+            .then(displayCovidMap)
             .then(displayCovidCasesWorld)
-            .then(displayWeathVsCasesScatterPlot);
+            .then(displayWeathVsCasesScatterPlot)
     </script>
 </body>
 
