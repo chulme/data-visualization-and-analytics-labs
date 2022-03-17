@@ -71,8 +71,9 @@
                     .attr("y", -25)
                     .attr("dy", "-5.1em")
                     .attr("text-anchor", "middle")
-                    .attr("stroke", "black")
-                    .text("Covid Cases");
+                    .style("fill", "black")
+                    .attr("font-size", "20px")
+                    .text("Covid Cases")
 
                 // Y Axis
                 var y = d3.scaleLinear()
@@ -85,7 +86,8 @@
                     .attr("y", Chart.Y_MAX + 40)
                     .attr("x", Chart.X_MAX / 2)
                     .attr("text-anchor", "middle")
-                    .attr("stroke", "black")
+                    .style("fill", "black")
+                    .attr("font-size", "20px")
                     .text("Date");
 
                 var buttonWidth = 75;
@@ -607,7 +609,8 @@
                 .attr("x", X_MAX / 2)
                 .attr("y", 40)
                 .attr("text-anchor", "middle")
-                .attr("stroke", "black")
+                .style("fill", "black")
+                .attr("font-size", "20px")
                 .text("GDP per capita");
 
             // Y Axis
@@ -625,7 +628,8 @@
                 .attr("y", -25)
                 .attr("dy", "-5.1em")
                 .attr("text-anchor", "middle")
-                .attr("stroke", "black")
+                .style("fill", "black")
+                .attr("font-size", "20px")
                 .text("Covid Cases");
 
             //Gridlines
