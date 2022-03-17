@@ -1238,7 +1238,7 @@
                 console.log("extents", vaccinationExtents)
                 var vaccinationColorScale = d3.scaleSqrt()
                     .domain(vaccinationExtents)
-                    .range(["red", "green"]);
+                    .range(["red", "blue"]);
 
                 svg.append("g")
                     .selectAll("circle")
@@ -1261,6 +1261,67 @@
                         var radius = radiusScale(d[1][0].total_cases);
                         return radius
                     })
+
+                //Color Legend
+                const barX = 800
+                const barY = 100
+                const barWidth = 200;
+                const barHeight = 20
+                const textOffset = 20;
+                const titleVerticalOffset = 35;
+                const extentLabelFontSize = 20;
+                const titleLabelFontSize = 23;
+                var gradient = svg.append("defs")
+                    .append("linearGradient")
+                    .attr("id", "gradient")
+                    .attr("x1", "0%")
+                    .attr("y1", "0%")
+                    .attr("x2", "100%")
+                    .attr("y2", "0%")
+                    .attr("spreadMethod", "pad");
+                gradient.append("stop")
+                    .attr("offset", "0%")
+                    .attr("stop-color", "red")
+                    .attr("stop-opacity", 1);
+
+                gradient.append("stop")
+                    .attr("offset", "100%")
+                    .attr("stop-color", "blue")
+                    .attr("stop-opacity", 1);
+                var mapColorLegend = svg.append("g")
+
+                mapColorLegend.append("rect")
+                    .attr("x", barX)
+                    .attr("y", barY)
+                    .attr("width", barWidth)
+                    .attr("height", barHeight)
+                    .style("fill", "url(#gradient)");
+
+                //Title
+                mapColorLegend.append("text")
+                    .text("Total Vaccinations per 100 citizens")
+                    .attr("x", barX + barWidth / 2)
+                    .attr("y", barY + barHeight - titleVerticalOffset)
+                    .style("text-anchor", "middle")
+                    .style("font-size", titleLabelFontSize);
+
+                //Lower extent label
+                mapColorLegend.append("text")
+                    .text(vaccinationExtents[0])
+                    .attr("x", barX - textOffset)
+                    .attr("y", barY + (barHeight / 2))
+                    .style("text-anchor", "middle")
+                    .style("font-size", extentLabelFontSize)
+
+                //Upper extent label
+                mapColorLegend.append("text")
+                    .attr("x", barX + barWidth + textOffset)
+                    .attr("y", barY + (barHeight / 2))
+                    .text(vaccinationExtents[1])
+                    .style("text-anchor", "middle")
+                    .style("font-size", extentLabelFontSize);
+
+
 
             })
 
