@@ -8,6 +8,7 @@
 <body>
     <script src='https://d3js.org/d3.v7.js'></script>
     <script src="https://unpkg.com/topojson@3"></script>
+    <script src='https://unpkg.com/simple-statistics@7.7.5/dist/simple-statistics.min.js'></script>
 
 
     <script>
@@ -198,12 +199,10 @@
                                         })
                                     //Emphasise on map
                                     d3.selectAll(".country").filter(function (d) {
-                                        console.log(d, s.key)
                                         return d.continent == s.key || d.properties.name == s.key
                                     }).transition()
                                         .duration(500)
                                         .style("fill", d => {
-                                            console.log(ORIGINAL_COLOR)
                                             return ORIGINAL_COLOR
                                         })
                                 })
@@ -346,12 +345,10 @@
 
                                         //Emphasise on map
                                         d3.selectAll(".country").filter(function (d) {
-                                            console.log(d, s.key)
                                             return d.continent == s.key || d.properties.name == s.key
                                         }).transition()
                                             .duration(500)
                                             .style("fill", d => {
-                                                console.log(ORIGINAL_COLOR)
                                                 return ORIGINAL_COLOR
                                             })
 
@@ -756,6 +753,38 @@
 
                 });
 
+            // Best Fit Line, based on https://stackoverflow.com/questions/57559499/plotting-a-trendline-with-d3-actual-forecast
+            var regression = ss.linearRegression(data.map(d => {
+                return [+d.value.gdp_per_capita, +d.value.total_cases]
+            }))
+            var lin = ss.linearRegressionLine(regression)
+
+            var lindata = x.domain().map(x => {
+                return {
+                    gdpPerCapita: x,
+                    totalCases: lin(+x)
+                }
+            })
+
+            svg.append("path")
+                .datum(lindata)
+                .style("stroke-dasharray", ("20, 20"))
+                .attr("stroke", "black")
+                .attr("stroke-width", 1)
+                .attr("d", d => {
+                    return d3.line()
+                        .x(function (d) {
+                            return x(d.gdpPerCapita);
+                        })
+                        .y(function (d) {
+                            return y(d.totalCases);
+                        })
+                        (d);
+                });
+            ;
+
+
+
             var brush = d3.brush()
                 .on("brush", highlightBrushedCircles)
                 .on("end", resetBrush)
@@ -786,11 +815,9 @@
                             return continentColorScale(d.value.continent)
                         })
                         .attr("r", selectedDotRadius)
-                    //console.log(selectedPoints.data()) //2d array
 
                     var linkedCountries = d3.selectAll(".country").filter(function (a) {
                         return selectedPoints.data().find(point => point.key == a.properties.name)
-                        //console.log(a.properties.name)
                     })
 
                     var selectedCountries = selectedPoints.data().map(d => {
@@ -818,14 +845,12 @@
 
             function resetBrush({ selection }) {
                 if (selection) { return; }
-                console.log("Resetting")
                 displayCovidCasesWorld()
                 //Reset scatter plot points
                 scatterPlotPoints
                     .transition()
                     .duration(500)
                     .style("fill", d => {
-                        console.log(d)
                         return continentColorScale(d.value.continent)
                     })
                     .attr("r", dotRadius)
@@ -1025,9 +1050,9 @@
 
                     if (indexOfMapDataContainingCountry > 0) {
                         mapData.features[indexOfMapDataContainingCountry].continent = val[0].continent;
-                    } else {
-                        console.log("No country found for ", key, indexOfMapDataContainingCountry)
-                    }
+                    }// else {
+                    //     console.log("No country found for ", key, indexOfMapDataContainingCountry)
+                    // }
                 })
 
 
@@ -1097,7 +1122,6 @@
                             return path.clicked == true
                         }).size() > 0 ? true : false;
 
-                        console.log("isAnyContinentSelected", isAnyContinentSelected)
                         if (!isAnyContinentSelected) {
                             d3.selectAll(".country")
                                 .transition("pulseExit")
