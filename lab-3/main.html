@@ -643,32 +643,6 @@
                 .attr("stroke", "#d3d3d3")
                 .attr("stroke-width", "0.5px");
 
-            // Add Info Box
-            const detailBoxHorzOffset = 10;
-            const detailBoxHeight = 75;
-            const detailBoxWidth = 200;
-            const spaceBetweenTextRows = 20;
-
-            var button = svg.append("g")
-                .attr("transform", "translate(" + X_MAX + "," + 5 + ")")
-            button.append("rect")
-                .attr("height", detailBoxHeight)
-                .attr("width", detailBoxWidth)
-                .attr("fill", "#e7e7e7")
-                .style("stroke", "black")
-                .style("stroke-width", "1");
-            button.append("text")
-                .text("Click on a datapoint")
-                .attr("dy", "0.2em")
-                .style("text-anchor", "middle")
-                .attr("x", (detailBoxWidth / 2))
-                .attr("y", (detailBoxHeight / 2) - spaceBetweenTextRows);
-            button.append("text")
-                .text("for more information.")
-                .attr("dy", "0.2em")
-                .style("text-anchor", "middle")
-                .attr("x", (detailBoxWidth / 2))
-                .attr("y", (detailBoxHeight / 2) + spaceBetweenTextRows);
 
             var scatterPlotPoints = svg.append('g')
                 .selectAll("dot")
@@ -696,29 +670,6 @@
                         })
                         .style("font-weight", (d) => d == s.value.continent ? "bold" : "normal")
                     svg.selectAll(".legendCircle").style("fill", (d) => d == s.value.continent ? ORIGINAL_COLOR : "#f1f1f1")
-
-                    //Update info box
-                    button.selectAll("text").remove()
-                    button.append("text")
-                        .text(s.value.location)
-                        .attr("dy", "0.2em")
-                        .style("text-anchor", "middle")
-                        .style("font-weight", "bold")
-                        .attr("x", (detailBoxWidth / 2))
-                        .attr("y", (detailBoxHeight / 2) - spaceBetweenTextRows);
-
-                    button.append("text")
-                        .text("GDP per capita: " + s.value.gdp_per_capita)
-                        .attr("dy", "0.2em")
-                        .style("text-anchor", "middle")
-                        .attr("x", (detailBoxWidth / 2))
-                        .attr("y", (detailBoxHeight / 2));
-                    button.append("text")
-                        .text("Covid Cases: " + s.value.total_cases)
-                        .attr("dy", "0.2em")
-                        .style("text-anchor", "middle")
-                        .attr("x", (detailBoxWidth / 2))
-                        .attr("y", (detailBoxHeight / 2) + spaceBetweenTextRows);
 
                     //Emphasise on line graph
                     var lines = d3.selectAll(".line")
