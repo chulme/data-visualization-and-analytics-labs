@@ -41,7 +41,7 @@
                     .attr("class", "title")
                     .attr("transform", "translate(" + (Chart.X_MAX) / 2 + "," + -20 + ")")
                     .attr("font-size", "24px")
-                    .text("COVID-19 cases over time")
+                    .text("COVID-19 Total Cases")
                     .style("text-anchor", "middle");
 
                 // Create extents with opposite extents, so that the first read dataset's extents
@@ -455,7 +455,7 @@
             });
             var colorScale = d3.scaleOrdinal().domain([finalData]).range(d3.schemeSet3);
 
-            covidCasesGraph.draw_line(finalData, colorScale, displayCovidCasesPerContinent, "COVID-19 cases over time");
+            covidCasesGraph.draw_line(finalData, colorScale, displayCovidCasesPerContinent, "COVID-19 Cases");
 
         }
 
@@ -481,7 +481,7 @@
             finalData.sort((x, y) => d3.ascending(x.key, y.key));
 
 
-            covidCasesGraph.draw_line(finalData, continentColorScale, displayCovidCasesPerCountry, "COVID-19 cases over time, per continent");
+            covidCasesGraph.draw_line(finalData, continentColorScale, displayCovidCasesPerCountry, "COVID-19 Cases by Continent");
 
         }
 
@@ -498,7 +498,7 @@
             var finalData = Array.from(countryData, function (item) {
                 return { key: item[0], values: item[1] }
             });
-            covidCasesGraph.draw_line(finalData, colorScale, displayVaccinesGraph, "COVID-19 cases over time in " + continent)
+            covidCasesGraph.draw_line(finalData, colorScale, displayVaccinesGraph, "COVID-19 Cases in " + continent)
 
         }
 
@@ -535,7 +535,7 @@
             // Set Dimensions
             X_SIZE = 2350;
             Y_SIZE = 600;
-            X_MARGIN =250;
+            X_MARGIN = 250;
             Y_MARGIN = 100;
 
             X_MAX = X_SIZE - X_MARGIN * 2;
@@ -549,7 +549,7 @@
                 .attr('width', X_SIZE)
                 .attr('height', Y_SIZE)
                 .append("g")
-                .attr("transform", "translate(" + (X_MARGIN+50) + "," + Y_MARGIN + ")");
+                .attr("transform", "translate(" + (X_MARGIN + 50) + "," + Y_MARGIN + ")");
 
             svg.append("text")
                 .attr("transform", "translate(" + (X_MAX) / 2 + "," + -20 + ")")
@@ -952,7 +952,7 @@
             svg.append("text")
                 .attr("transform", "translate(" + (X_MAX) / 2 + "," + -20 + ")")
                 .attr("font-size", "24px")
-                .text("Covid Evolution Map.")
+                .text("COVID-19 Map")
                 .style("text-anchor", "middle");
 
             //Load map data
