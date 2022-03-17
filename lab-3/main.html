@@ -11,7 +11,6 @@
 
     <script>
 
-        var continentColorScale;
 
         class Chart {
             constructor() {
@@ -24,7 +23,7 @@
                 Chart.X_MAX = Chart.X_SIZE - Chart.X_MARGIN * 2;
                 Chart.Y_MAX = Chart.Y_SIZE - Chart.Y_MARGIN * 2;
                 Chart.STROKE_WIDTH = 3.5;
-                Chart.STROKE_WIDTH_ON_HOVER = 6.5
+                Chart.STROKE_WIDTH_ON_HOVER = 10
                 // Append SVG Object to the Page
                 Chart.svg = d3.select("body")
                     .append("svg")
@@ -148,7 +147,9 @@
                 var line = Chart.svg.selectAll(".line")
                 // Add the line
                 line
-                    .data(data, d => d.key)
+                    .data(data, d => {
+                        return d.key
+                    })
                     .join(
                         function (enter) {
                             var line = enter.append("path")
@@ -203,19 +204,32 @@
 
                                 })
 
-                            line.transition()
-                                .duration(250)
+                            line
+
                                 //.delay((d, i) => i * 200)
                                 .attr("class", "line")
                                 .attr("fill", "none")
+
                                 .attr("stroke-width", Chart.STROKE_WIDTH)
+                                .attr("d", function (d) {
+                                    return d3.line()
+                                        .x(d => x(new Date(d.date)))
+                                        .y(d => y(0))
+                                        (d.values)
+                                })
+                                .attr("stroke", d => {
+                                    return colorScale(d.key)
+                                })
+                                .transition("lineEnter")
+                                .duration(500)
                                 .attr("d", function (d) {
                                     return d3.line()
                                         .x(d => x(new Date(d.date)))
                                         .y(d => y(d.total_cases))
                                         (d.values)
                                 })
-                                .attr("stroke", d => colorScale(d.key))
+
+
                             return line;
                         },
                         function (update) {
@@ -225,14 +239,15 @@
                                         .x(d => x(new Date(d.date)))
                                         .y(d => y(d.total_cases))
                                         (d.values)
-                                }).attr("stroke", (d, i) => colorScale(i));
+                                }).attr("stroke", (d, i) => {
+                                    var my = d;
+                                    return colorScale(d.key)
+
+                                });
                         },
                         function (exit) {
                             return exit
-                                //.transition()
-                                //.duration(1000)
-                                // .attr("stroke", "white")
-                                .remove();
+                                .remove()
                         })
             }
 
@@ -336,6 +351,9 @@
                                 .attr("text-anchor", "start")
                                 .text(d => d.key.length > MAX_LABEL_LENGTH ? d.key.slice(0, MAX_LABEL_LENGTH) + "..." : d.key)
                         },
+                        function (update) {
+                            return update;
+                        },
                         function (exit) {
                             exit.remove()
                         }
@@ -366,7 +384,6 @@
         }
 
         function displayCovidCasesWorld() {
-            window.covidCasesGraph = new Chart();
 
             var filtered = raw_data.filter(d => d.iso_code == "OWID_WRL");
             var continentData = new Map()
@@ -450,7 +467,6 @@
                 return { key: item[0], value: item[1] }
             });
 
-            continentColorScale = d3.scaleOrdinal().domain([data]).range(d3.schemeSet3);
 
             // Initialise graph 
 
@@ -810,9 +826,7 @@
                 var filtered = raw_data.filter(d => !d.iso_code.includes("OWID"))
                     .filter(d => new Date(d.date).getTime() === maxDate.getTime());
                 var countryCovidDataMap = d3.group(filtered, d => d.location)
-                const continents = ["Asia", "Africa", "Europe", "North America", "South America", "Oceania"];
 
-                var colorScale = d3.scaleOrdinal().domain(continents).range(d3.schemeSet3);
 
                 var countryData = new Map()
                 countryCovidDataMap.forEach(function (val, key) {
@@ -834,29 +848,150 @@
                 //Create map
                 const projection = d3.geoMercator()
                     .scale(99)
+                    .center([0, 0])
                     .translate([X_MAX / 2, Y_MAX / 2]);
                 const path = d3.geoPath(projection);
                 console.log(mapData)
 
-                svg.selectAll("path")
+                var paths = svg.selectAll("path")
                     .data(mapData.features)
                     .enter()
                     .append("path")
+                    .attr("class", "country")
                     .attr("id", d => {
                         return d.continent != undefined ? d.continent.split(" ").join("") : "UnknownContinent"
 
                     })
                     .attr("d", (d) => path(d))
                     .attr("fill", "#f1f1f1")
-                    .on("mouseover", function (m, s) {
-                        if (s.continent != undefined) {
-                            console.log(d3.selectAll("#" + s.continent).size())
-                            d3.selectAll("#" + s.continent.split(" ").join(""))
-                                .transition()
+                    .style("stroke", "black")
+                    .style("stroke-width", 0);
+                paths.on("mouseover", function (m, s) {
+
+                    const isAnyContinentSelected = paths.filter(path => {
+                        return path.clicked == true
+                    }).size() > 0 ? true : false;
+
+                    if (s.continent != undefined && !isAnyContinentSelected) {
+                        d3.selectAll("#" + s.continent.split(" ").join(""))
+                            .transition("continentHover")
+                            .duration(200)
+                            .style("fill", d => continentColorScale(s.continent))
+
+
+
+                        //Display breakdown per continent, with emphasis on the selected continent
+                        displayCovidCasesPerContinent()
+
+                        var line = d3.selectAll(".line").filter(function (line) {
+                            return line.key == s.continent
+                        })
+                            .transition("pulseEnter")
+                            .attr("stroke-width", Chart.STROKE_WIDTH_ON_HOVER)
+
+                        //Highlight continent on scatter plot
+                        d3.selectAll(".scatterPlotPoint").filter(function (point) {
+                            return point.value.continent
+                        })
+
+                        //Highlight scatter plot
+                        d3.selectAll(".scatterPlotPoint")
+                            .style("fill", (d, i, elements) => {
+                                const isSameContinent = d.value.continent == s.continent;
+                                // Additionally check if s.key==World, to prevent updating points when hovering over world plot.
+                                return (isSameContinent) ? d3.select(elements[i]).style("fill") : "#f1f1f1";
+                            })
+                    }
+                })
+                    .on("mouseout", function (m, s) {
+                        const isAnyContinentSelected = paths.filter(path => {
+                            return path.clicked == true
+                        }).size() > 0 ? true : false;
+
+                        console.log("isAnyContinentSelected", isAnyContinentSelected)
+                        if (!isAnyContinentSelected) {
+                            d3.selectAll(".country")
+                                .transition("pulseExit")
                                 .duration(200)
-                                .style("opacity", 1)
-                                .style("fill", "blue")
+                                .style("fill", "#f1f1f1")
+                                .style("stroke-width", 0)
+
+                            d3.selectAll(".line")
+                                .attr("stroke-width", Chart.STROKE_WIDTH)
+
+                            //Reset scatter plot
+                            d3.selectAll(".scatterPlotPoint")
+                                .style("fill", (d, i, elements) => {
+                                    return continentColorScale(d.value.continent);
+                                })
+
+                            displayCovidCasesWorld()
                         }
+                    })
+                    .on("click", function (m, s) {
+
+                        if (s.continent != undefined) {
+
+                            // Deselect all paths
+                            paths.each(function (path) {
+                                if (path.continent != s.continent) {
+
+                                    if (path.clicked == true) {
+                                        path.clicked = false;
+
+                                    }
+                                    d3.select(this)
+                                        .transition("hm")
+                                        .duration(300)
+                                        .style("stroke-width", 0)
+                                        .style("fill", "#f1f1f1")
+
+                                }
+
+                            });
+
+                            s.clicked = (s.clicked == undefined) ? true : !s.clicked;
+                            if (s.clicked == true) {
+
+
+                                d3.selectAll("#" + s.continent.split(" ").join(""))
+                                    .transition("continentClick")
+                                    .duration(200)
+                                    .style("stroke-width", "1")
+                                    .style("fill", continentColorScale(s.continent))
+
+
+                                //Display breakdown per continent, with emphasis on the selected continent
+                                displayCovidCasesPerCountry(s.continent)
+
+                                var line = d3.selectAll(".line").filter(function (line) {
+                                    return line.key == s.continent
+                                })
+                                    .transition("pulseEnter")
+                                    .attr("stroke-width", Chart.STROKE_WIDTH_ON_HOVER)
+
+                                //Highlight continent on scatter plot
+                                d3.selectAll(".scatterPlotPoint").filter(function (point) {
+                                    return point.value.continent
+                                })
+
+                                //Highlight scatter plot
+                                d3.selectAll(".scatterPlotPoint")
+                                    .style("fill", (d, i, elements) => {
+                                        const isSameContinent = d.value.continent == s.continent;
+                                        // Additionally check if s.key==World, to prevent updating points when hovering over world plot.
+                                        return (isSameContinent) ? d3.select(elements[i]).style("fill") : "#f1f1f1";
+                                    })
+                            } else {
+                                d3.selectAll("#" + s.continent.split(" ").join(""))
+                                    .transition("continentClickHide")
+                                    .duration(200)
+                                    .style("stroke-width", "0")
+                                displayCovidCasesPerContinent()
+
+                            }
+                        }
+
                     });
 
                 //Create country centroids
@@ -874,14 +1009,12 @@
                     }
                 })
 
-                console.log(countryData)
                 var extents = d3.extent(countryData, d => {
                     return parseInt(d[1][0].total_cases);
                 })
-                console.log(extents)
                 var radiusScale = d3.scaleSqrt()
                     .domain(extents)
-                    .range([0, 50]);
+                    .range([0, 30]);
 
                 svg.append("g")
                     .selectAll("circle")
@@ -889,7 +1022,7 @@
                     .enter()
                     .append("circle")
                     .attr("fill", d => {
-                        return colorScale(d[1][0].continent)
+                        return continentColorScale(d[1][0].continent)
                     })
                     .attr("stroke", "black")
                     .style("opacity", 0.4)
@@ -912,10 +1045,17 @@
         d3.csv('https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv')
             .then(function (data) {
                 window.raw_data = data; //global data;
+                const continents = ["Asia", "Africa", "Europe", "North America", "South America", "Oceania"];
+                window.continentColorScale = d3.scaleOrdinal().domain([data]).range(d3.schemeSet3);
+
             })
-            .then(displayCovidMap)
-            .then(displayCovidCasesWorld)
-            .then(displayWeathVsCasesScatterPlot)
+            .then(function () {
+
+                displayCovidMap()
+                window.covidCasesGraph = new Chart();
+                displayCovidCasesWorld()
+                displayWeathVsCasesScatterPlot()
+            })
     </script>
 </body>
 
