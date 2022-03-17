@@ -16,9 +16,11 @@
         class Chart {
             constructor() {
                 // Set Dimensions
-                Chart.X_SIZE = 1550;
+                Chart.X_SIZE = 1150;
                 Chart.Y_SIZE = 750;
-                Chart.X_MARGIN = 350;
+
+
+                Chart.X_MARGIN = 250;
                 Chart.Y_MARGIN = 50;
 
                 Chart.X_MAX = Chart.X_SIZE - Chart.X_MARGIN * 2;
@@ -531,10 +533,10 @@
             // Initialise graph 
 
             // Set Dimensions
-            X_SIZE = 1550;
-            Y_SIZE = 750;
-            X_MARGIN = 350;
-            Y_MARGIN = 50;
+            X_SIZE = 2350;
+            Y_SIZE = 600;
+            X_MARGIN =250;
+            Y_MARGIN = 100;
 
             X_MAX = X_SIZE - X_MARGIN * 2;
             Y_MAX = Y_SIZE - Y_MARGIN * 2;
@@ -547,7 +549,7 @@
                 .attr('width', X_SIZE)
                 .attr('height', Y_SIZE)
                 .append("g")
-                .attr("transform", "translate(" + X_MARGIN + "," + Y_MARGIN + ")");
+                .attr("transform", "translate(" + (X_MARGIN+50) + "," + Y_MARGIN + ")");
 
             svg.append("text")
                 .attr("transform", "translate(" + (X_MAX) / 2 + "," + -20 + ")")
@@ -929,9 +931,9 @@
 
         function displayCovidMap() {
             // Set Dimensions
-            X_SIZE = 1550;
+            X_SIZE = 1150;
             Y_SIZE = 750;
-            X_MARGIN = 350;
+            X_MARGIN = 50;
             Y_MARGIN = 50;
 
             X_MAX = X_SIZE - X_MARGIN * 2;
@@ -1001,8 +1003,8 @@
 
                 //Create map
                 const projection = d3.geoMercator()
-                    .scale(99)
-                    .center([0, 0])
+                    .scale(160)
+                    .center([150, 70])
                     .translate([X_MAX / 2, Y_MAX / 2]);
                 const path = d3.geoPath(projection);
 
