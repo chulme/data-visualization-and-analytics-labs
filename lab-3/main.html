@@ -874,7 +874,6 @@
                                             return d.value.continent == s ? selectedDotRadius : dotRadius
                                         })
 
-                                    points.filter(d => (d.value.continent == s)).raise()
 
                                     svg.selectAll(".legendText")
                                         .style("fill", (d) => d == s ? "black" : "#f1f1f1")
