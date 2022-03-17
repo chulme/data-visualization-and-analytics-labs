@@ -1223,12 +1223,22 @@
                     }
                 })
 
-                var extents = d3.extent(countryData, d => {
+                var totalCasesExtents = d3.extent(countryData, d => {
                     return parseInt(d[1][0].total_cases);
                 })
                 var radiusScale = d3.scaleSqrt()
-                    .domain(extents)
-                    .range([0, 30]);
+                    .domain(totalCasesExtents)
+                    .range([0, 40]);
+
+                var vaccinationMap = getVaccinationsMap()
+                var vaccinationExtents = d3.extent(vaccinationMap, d => {
+                    return parseInt(d[1]);
+                })
+                console.log("vacc map", vaccinationMap)
+                console.log("extents", vaccinationExtents)
+                var vaccinationColorScale = d3.scaleSqrt()
+                    .domain(vaccinationExtents)
+                    .range(["red", "green"]);
 
                 svg.append("g")
                     .selectAll("circle")
@@ -1236,7 +1246,8 @@
                     .enter()
                     .append("circle")
                     .attr("fill", d => {
-                        return continentColorScale(d[1][0].continent)
+                        console.log(d[0], vaccinationMap.get(d[0]))
+                        return vaccinationColorScale(+vaccinationMap.get(d[0]))
                     })
                     .attr("stroke", "black")
                     .style("opacity", 0.4)
@@ -1255,6 +1266,30 @@
 
         }
 
+        function getVaccinationsMap() {
+            var maxDate = new Date(d3.max(vaccinations, d => new Date(d.date)))
+
+            var filtered = vaccinations.filter(d => !d.iso_code.includes("OWID"));
+
+            var countryVaccinationMap = d3.group(filtered, d => d.location)
+
+            var vaccinationMap = new Map()
+            countryVaccinationMap.forEach(function (val, key) {
+
+                var vaccinationMax = d3.max(val, d => {
+                    return parseInt(d.total_vaccinations_per_hundred);
+                })
+
+                vaccinationMap.set(key, vaccinationMax)
+            })
+            console.log(vaccinationMap)
+            return vaccinationMap;
+        }
+        d3.csv("https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/vaccinations.csv")
+            .then(function (data) {
+                window.vaccinations = data;
+                getVaccinationsMap()
+            })
 
         d3.csv('https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv')
             .then(function (data) {
