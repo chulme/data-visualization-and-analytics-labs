@@ -12,6 +12,9 @@
 
     <script>
 
+        // Add dots
+        const dotRadius = 3.5;
+        const selectedDotRadius = 5;
 
         class Chart {
             constructor() {
@@ -184,6 +187,15 @@
                                             // Additionally check if s.key==World, to prevent updating points when hovering over world plot.
                                             return (isSameContinent || isSameCountry || s.key == "World") ? d3.select(elements[i]).style("fill") : "#f1f1f1";
                                         })
+                                        .attr("r", d => {
+                                            if (s.key == "World") {
+                                                return dotRadius
+                                            } else {
+                                                const isSameContinent = d.value.continent == s.key;
+                                                const isSameCountry = (d.key == s.key);
+                                                return (isSameContinent || isSameCountry) ? selectedDotRadius : dotRadius
+                                            }
+                                        })
                                     //Emphasise on map
                                     d3.selectAll(".country").filter(function (d) {
                                         console.log(d, s.key)
@@ -210,7 +222,7 @@
                                     d3.selectAll(".scatterPlotPoint")
                                         .style("fill", (d, i, elements) => {
                                             return continentColorScale(d.value.continent);
-                                        })
+                                        }).attr("r", dotRadius)
 
                                     //Reset map
                                     d3.selectAll(".country")
@@ -314,10 +326,22 @@
                                         //Highlight scatter plot
                                         d3.selectAll(".scatterPlotPoint")
                                             .style("fill", (d, i, elements) => {
+                                                if (s.key == "World") {
+                                                    return d3.select(elements[i]).style("fill")
+                                                }
                                                 const isSameContinent = d.value.continent == s.key;
                                                 const isSameCountry = (d.key == s.key);
                                                 // Additionally check if s.key==World, to prevent updating points when hovering over world plot.
-                                                return (isSameContinent || isSameCountry || s.key == "World") ? d3.select(elements[i]).style("fill") : "#f1f1f1";
+                                                return (isSameContinent || isSameCountry) ? d3.select(elements[i]).style("fill") : "#f1f1f1";
+                                            })
+                                            .attr("r", d => {
+                                                if (s.key == "World") {
+                                                    return dotRadius
+                                                } else {
+                                                    const isSameContinent = d.value.continent == s.key;
+                                                    const isSameCountry = (d.key == s.key);
+                                                    return (isSameContinent || isSameCountry) ? selectedDotRadius : dotRadius
+                                                }
                                             })
 
                                         //Emphasise on map
@@ -350,7 +374,8 @@
                                         d3.selectAll(".scatterPlotPoint")
                                             .style("fill", (d, i, elements) => {
                                                 return continentColorScale(d.value.continent);
-                                            })
+                                            }).attr("r", dotRadius)
+
 
                                         //Reset map
                                         d3.selectAll(".country")
@@ -648,9 +673,6 @@
                 .attr("x", (detailBoxWidth / 2))
                 .attr("y", (detailBoxHeight / 2) + spaceBetweenTextRows);
 
-            // Add dots
-            const dotRadius = 3.5;
-            const selectedDotRadius = 5;
             var scatterPlotPoints = svg.append('g')
                 .selectAll("dot")
                 .data(data, d => d.key)
@@ -763,6 +785,7 @@
                         .style("fill", function (d, i) {
                             return continentColorScale(d.value.continent)
                         })
+                        .attr("r", selectedDotRadius)
                     //console.log(selectedPoints.data()) //2d array
 
                     var linkedCountries = d3.selectAll(".country").filter(function (a) {
@@ -801,11 +824,11 @@
                 scatterPlotPoints
                     .transition()
                     .duration(500)
-
                     .style("fill", d => {
                         console.log(d)
                         return continentColorScale(d.value.continent)
                     })
+                    .attr("r", dotRadius)
                 //Reset map
                 d3.selectAll(".country")
                     .transition()
@@ -842,8 +865,13 @@
                                     var hoveredCircle = d3.select(this).select("circle");
                                     const ORIGINAL_COLOR = hoveredCircle.style("fill");
                                     var points = svg.selectAll(".scatterPlotPoint")
+                                        .transition()
+                                        .duration(500)
                                         .style("fill", (d) => {
                                             return d.value.continent == s ? ORIGINAL_COLOR : "#f1f1f1"
+                                        })
+                                        .attr("r", d => {
+                                            return d.value.continent == s ? selectedDotRadius : dotRadius
                                         })
 
                                     points.filter(d => (d.value.continent == s)).raise()
@@ -873,7 +901,10 @@
                                 .on("mouseout", function () {
                                     //Reset scatter plot
                                     svg.selectAll(".scatterPlotPoint")
-                                        .style("fill", (d, i) => continentColorScale(d.value.continent));
+                                        .transition()
+                                        .duration(500)
+                                        .style("fill", (d, i) => continentColorScale(d.value.continent))
+                                        .attr("r", dotRadius)
                                     svg.selectAll(".legendText")
                                         .style("fill", "black")
                                         .style("font-weight", "normal");
@@ -1056,6 +1087,10 @@
                                 // Additionally check if s.key==World, to prevent updating points when hovering over world plot.
                                 return (isSameContinent) ? d3.select(elements[i]).style("fill") : "#f1f1f1";
                             })
+                            .attr("r", d => {
+                                return (d.value.continent == s.continent) ? selectedDotRadius : dotRadius
+
+                            })
                     }
                 })
                     .on("mouseout", function (m, s) {
@@ -1079,6 +1114,7 @@
                                 .style("fill", (d, i, elements) => {
                                     return continentColorScale(d.value.continent);
                                 })
+                                .attr("r", dotRadius)
 
                             displayCovidCasesWorld()
                         }
