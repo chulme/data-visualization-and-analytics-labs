@@ -810,7 +810,9 @@
                 var filtered = raw_data.filter(d => !d.iso_code.includes("OWID"))
                     .filter(d => new Date(d.date).getTime() === maxDate.getTime());
                 var countryCovidDataMap = d3.group(filtered, d => d.location)
-                var colorScale = d3.scaleOrdinal().domain([countryCovidDataMap.keys()]).range(d3.schemeSet3);
+                const continents = ["Asia", "Africa", "Europe", "North America", "South America", "Oceania"];
+
+                var colorScale = d3.scaleOrdinal().domain(continents).range(d3.schemeSet3);
 
                 var countryData = new Map()
                 countryCovidDataMap.forEach(function (val, key) {
@@ -873,15 +875,24 @@
                 })
 
                 console.log(countryData)
-                var radiusScale = d3.scaleLinear()
-                    .domain([0, 10])
-                    .range([0, 5]);
+                var extents = d3.extent(countryData, d => {
+                    return parseInt(d[1][0].total_cases);
+                })
+                console.log(extents)
+                var radiusScale = d3.scaleSqrt()
+                    .domain(extents)
+                    .range([0, 50]);
 
                 svg.append("g")
                     .selectAll("circle")
                     .data(countryData)
                     .enter()
                     .append("circle")
+                    .attr("fill", d => {
+                        return colorScale(d[1][0].continent)
+                    })
+                    .attr("stroke", "black")
+                    .style("opacity", 0.4)
                     .attr("cx", d => {
                         return d[1].centroid.x
                     })
@@ -889,7 +900,7 @@
                         return d[1].centroid.y
                     })
                     .attr("r", d => {
-                        var radius = d[1][0].total_cases / 2000000;
+                        var radius = radiusScale(d[1][0].total_cases);
                         return radius
                     })
 
