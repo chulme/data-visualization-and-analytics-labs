@@ -1230,7 +1230,7 @@
                 const textOffset = 20;
                 const titleVerticalOffset = 35;
                 const extentLabelFontSize = 20;
-                const titleLabelFontSize = 23;
+                const titleLabelFontSize = 21;
                 var gradient = svg.append("defs")
                     .append("linearGradient")
                     .attr("id", "gradient")
@@ -1272,6 +1272,7 @@
                     .attr("y", barY + (barHeight / 2))
                     .style("text-anchor", "middle")
                     .style("font-size", extentLabelFontSize)
+                    .style("alignment-baseline", "central")
 
                 //Upper extent label
                 mapColorLegend.append("text")
@@ -1279,7 +1280,8 @@
                     .attr("y", barY + (barHeight / 2))
                     .text(vaccinationExtents[1])
                     .style("text-anchor", "middle")
-                    .style("font-size", extentLabelFontSize);
+                    .style("font-size", extentLabelFontSize)
+                    .style("alignment-baseline", "central");
 
 
 
