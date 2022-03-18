@@ -1237,7 +1237,7 @@
                 var vaccinationExtents = d3.extent(vaccinationMap, d => {
                     return parseInt(d[1]);
                 })
-                var vaccinationColorScale = d3.scaleSqrt()
+                var vaccinationColorScale = d3.scaleLinear()
                     .domain(vaccinationExtents)
                     .range(["red", "blue"]);
 
