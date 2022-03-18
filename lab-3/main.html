@@ -1,4 +1,33 @@
 <!DOCTYPE html>
+
+<!-- 
+    F21DV - Data Visualization and Analytics
+    Lab 3: Dataset Visualisation & Analytics 
+    Author: Christopher Hulme 
+    The purpose of this codebase is to narrate COVID-19 data, displaying the following details:
+    1. Narrate the evolution of the COVID-19 pandemic over the continents and specific countries (you can provide 
+    the narration for a selection of countries).
+    2. Is there a relation between the relative ‘wealth’ of a population and the evolution of the pandemic.
+    3. What is the effect of vaccinations on the spread of cases/deaths and display any effect (if any) that booster 
+    jabs have on the cases/deaths.
+    4. How does the geographical position of a country affect the evolution of COVID-19
+
+    This is achieved by firstly creating a geographic map, with bubbles drawn that indicate the number of total cases,
+    and number of vaccinations per 100 citizens. The user can hover over continents to show how that continent's COVID-19 cases
+    compares against other continents in other graphs. The user can also click on the continent, to show a more detailed breakdown
+    of the total cases for each country within the continent. 
+
+    The next element is the COVID-19 cases line graph. Which by default shows the total cases over the world. The user may click on
+    the line or the legend, to navigate the graphs different layouts ie. world => continent breakdown => country breakdown for a given
+    continent. Hovering over lines or line-graph legend will highlight the associated line, while also highlighting related information 
+    on other graphs (ie. highlighting the continent or country, highlighting associated data points on scatter plot)
+
+    The final element is the relation of wealth vs COVID-19 cases scatter plot. Every country is plotted as a data-point, and color coded
+    to the associated continent. A line of best fit is calculated using the simple-statistics library, and then drawn to show this relationship.
+    As with previous graphs, the user may hover over the legend to highlight the data-points for a given continent, while also highlighting the
+    continent on the map and line graph. Furthermore, the scatter-plot supports brushing, where the user may click and drag a box around data points.
+    Brushed data-points are then highlighted on the map, and shown on the line-graph. The user may click on the scatter plot to reset the brushing.
+-->
 <html>
 
 <head>
@@ -36,7 +65,8 @@
                 Chart.Y_MAX = Chart.Y_SIZE - Chart.Y_MARGIN * 2;
                 Chart.STROKE_WIDTH = 3.5;
                 Chart.STROKE_WIDTH_ON_HOVER = 10
-                // Append SVG Object to the Page
+
+                // Append SVG Object to the page
                 Chart.svg = d3.select("body")
                     .append("svg")
                     .attr('width', Chart.X_SIZE)
@@ -45,7 +75,7 @@
                     .attr("transform", "translate(" + Chart.X_MARGIN + "," + Chart.Y_MARGIN + ")");
 
 
-
+                // Append chart title to page
                 Chart.svg.append("text")
                     .attr("class", "title")
                     .attr("transform", "translate(" + (Chart.X_MAX) / 2 + "," + -20 + ")")
@@ -90,6 +120,7 @@
                     .attr("font-size", "20px")
                     .text("Date");
 
+                // Back button
                 var buttonWidth = 75;
                 var buttonHeight = 25;
                 Chart.button = Chart.svg.append("g")
@@ -112,7 +143,11 @@
             }
 
 
-
+            /**
+             * This function is the high-level function to update lines
+             * on the chart, requiring data, color scale, an onClickFunction
+             * when clicking lines, and the chart title.
+             */
             draw_line(data, colorScale, onClickFunction, title) {
 
                 var [x, y] = this.get_axis_scales(data);
@@ -123,11 +158,18 @@
                 this.update_title(title)
             }
 
+            /**
+             * Updates the chart's title
+             */
             update_title(title) {
                 Chart.svg.select(".title")
                     .text(title);
             }
 
+            /**
+             * Calculates x-y axis scales from extents (upper-lower limits)
+             * of data.
+             */
             get_axis_scales(data) {
                 //Get extents of data
                 var flattened_data = [].concat.apply([], data.map(e => e.values));
@@ -148,6 +190,9 @@
                 return [x, y];
             }
 
+            /**
+             * Updates x-y axis based on x-y scale.
+             */
             update_axis(x, y) {
                 Chart.svg.select("g .bottom_axis")
                     .attr("transform", "translate(0," + Chart.Y_MAX + ")")
@@ -157,10 +202,13 @@
                     .call(d3.axisLeft(y));
             }
 
+            /**
+             * Lower level function to update lines
+             */
             update_lines(data, x, y, colorScale, onClickFunction) {
-                console.log(colorScale("Afganistan"))
 
                 var line = Chart.svg.selectAll(".line")
+
                 // Add the line
                 line
                     .data(data, d => {
@@ -174,20 +222,22 @@
                                 })
                                 .on("mouseover", function (m, s) {
 
+                                    // Get original characteristics of line.
                                     var hoveredLine = d3.select(this);
                                     const ORIGINAL_COLOR = hoveredLine.attr("stroke");
                                     const ORIGINAL_STROKE_WIDTH = hoveredLine.attr("stroke-width");
+
+                                    //Emphasise hovered line 
                                     Chart.svg.selectAll(".line")
                                         .attr("stroke", (d) => d.key == s.key ? ORIGINAL_COLOR : "#f1f1f1")
                                         .attr("stroke-width", (d) => d.key == s.key ? Chart.STROKE_WIDTH_ON_HOVER : ORIGINAL_STROKE_WIDTH)
                                     hoveredLine.raise(); //Display on top
+
+                                    //Emphasise hovered line's associated legend elements
                                     Chart.svg.selectAll(".legendText")
                                         .style("fill", (d) => d.key == s.key ? "black" : "#f1f1f1")
                                         .style("font-weight", (d) => d.key == s.key ? "bold" : "normal")
-
                                     Chart.svg.selectAll(".legendCircle").style("fill", (d) => d.key == s.key ? ORIGINAL_COLOR : "#f1f1f1")
-
-
 
                                     //Highlight scatter plot
                                     d3.selectAll(".scatterPlotPoint")
@@ -222,11 +272,11 @@
                                         .attr("stroke", (d, i) => {
                                             return colorScale(d.key)
                                         });
+                                    //Reset legend elements
                                     Chart.svg.selectAll(".legendText")
                                         .style("fill", "black")
                                         .style("font-weight", "normal");
                                     Chart.svg.selectAll(".legendCircle").style("fill", (d, i) => colorScale(d.key));
-
 
                                     //Reset scatter plot
                                     d3.selectAll(".scatterPlotPoint")
@@ -240,16 +290,14 @@
                                         .duration(500)
                                         .style("fill",
                                             "#f1f1f1")
-
-
                                 })
 
+                            // Define styling of line, which contains an enter transition,
+                            // where the line starts along the x-axis and rises to the required
+                            // positions.
                             line
-
-                                //.delay((d, i) => i * 200)
                                 .attr("class", "line")
                                 .attr("fill", "none")
-
                                 .attr("stroke-width", Chart.STROKE_WIDTH)
                                 .attr("d", function (d) {
                                     return d3.line()
@@ -268,8 +316,6 @@
                                         .y(d => y(d.total_cases))
                                         (d.values)
                                 })
-
-
                             return line;
                         },
                         function (update) {
@@ -290,7 +336,10 @@
                                 .remove()
                         })
             }
-
+            /**
+             * Lower level function to dynamically update the legend,
+             * based on the data.
+             */
             update_legend(data, colorScale, onClickFunction) {
                 const SPACE_OF_ELEMENTS = 5;
                 const NUMBER_OF_ELEMENTS_PER_COLUMN = 30;
@@ -303,34 +352,31 @@
                 var circleColumnCounter = -1;
                 var textColumnCounter = -1;
 
-                var _this = this;
                 var legend = Chart.svg
                     .selectAll('g.legend')
                     .data(data, d => d.key)
                     .join(
                         function (enter) {
-
-                            Chart.back_elements = { data: data, colorScale: colorScale, onClickFunction: onClickFunction };
-
                             var legend_element_container =
                                 enter.append("g")
                                     .attr("class", "legend")
                                     .on("mouseover", function (m, s) {
 
+                                        // Select original properties of circle.
                                         var hoveredCircle = d3.select(this).select("circle");
                                         const ORIGINAL_COLOR = hoveredCircle.style("fill");
                                         const ORIGINAL_STROKE_WIDTH = hoveredCircle.attr("stroke-width");
 
+                                        // Emphasise hovered legend's associated line
                                         var lines = Chart.svg.selectAll(".line")
                                             .attr("stroke", (d) => d.key == s.key ? ORIGINAL_COLOR : "#f1f1f1")
                                             .attr("stroke-width", (d) => d.key == s.key ? Chart.STROKE_WIDTH_ON_HOVER : Chart.STROKE_WIDTH)
-
                                         lines.filter(d => (d.key == s.key)).raise()
 
+                                        // Emphasise hovered legend elements
                                         Chart.svg.selectAll(".legendText")
                                             .style("fill", (d) => d.key == s.key ? "black" : "#f1f1f1")
                                             .style("font-weight", (d) => d.key == s.key ? "bold" : "normal")
-
                                         Chart.svg.selectAll(".legendCircle").style("fill", (d) => d.key == s.key ? ORIGINAL_COLOR : "#f1f1f1")
 
                                         //Highlight scatter plot
@@ -380,7 +426,6 @@
                                                 return continentColorScale(d.value.continent);
                                             }).attr("r", dotRadius)
 
-
                                         //Reset map
                                         d3.selectAll(".country")
                                             .transition()
@@ -393,6 +438,8 @@
                                         onClickFunction(i.key)
                                     })
 
+                            // Append circle to legend, where x,y coordinates are positioned in a row-column
+                            // layout, so that elements don't infinitely appear in a vertical line.
                             legend_element_container.append("circle")
                                 .attr("class", "legendCircle")
                                 .attr("cx", (d, i) => {
@@ -401,11 +448,13 @@
                                 })
                                 .attr('cy', (d, i) => {
                                     var rotating_index = (i) % NUMBER_OF_ELEMENTS_PER_COLUMN;
-
                                     return ((rotating_index) * SPACE_BETWEEN_ROWS + (Chart.Y_MAX / 2) - data.length * SPACE_OF_ELEMENTS)
                                 })
                                 .attr("r", CIRCLE_RADIUS)
                                 .style("fill", d => colorScale(d.key))
+
+                            // Append text to legend, where x,y coordinates are positioned in a row-column
+                            // layout, so that elements don't infinitely appear in a vertical line.
                             legend_element_container.append("text")
                                 .attr("class", "legendText")
                                 .attr("x", (d, i) => {
@@ -419,6 +468,9 @@
                                 .attr("text-anchor", "start")
                                 .text(d => d.key.length > MAX_LABEL_LENGTH ? d.key.slice(0, MAX_LABEL_LENGTH) + "..." : d.key)
                         },
+
+                        // Update text and circle elements to legend, where x,y coordinates are positioned in a row-column
+                        // layout, so that elements don't infinitely appear in a vertical line.
                         function (update) {
                             update.select("circle")
                                 .attr("class", "legendCircle")
@@ -452,6 +504,10 @@
 
             }
 
+            /**
+             * Updates the back button, keeping track of the current layout index and updating the associated
+             * elements for that layout index (data, color scale, onClickFunction, title)
+             */
             update_back_button(data, colorScale, onClickFunction, title) {
                 Chart.prevData.push({ data: data, colorScale: colorScale, onClickFunction: onClickFunction, title: title });
 
@@ -474,6 +530,11 @@
             }
         }
 
+        /**
+         * High-level function to display COVID-19 cases for the world.
+         * This filters data that contains the ISO_CODE OWID_WRL, representing
+         * world-wide data.
+         */
         function displayCovidCasesWorld() {
 
             var filtered = raw_data.filter(d => d.iso_code == "OWID_WRL");
@@ -488,6 +549,11 @@
 
         }
 
+        /**
+         * High-level function to display COVID-19 cases for each continent.
+         * This filters data that contains the ISO_CODE OWID_XXX, XXX being
+         * the continent code. This represents continent based data.
+         */
         function displayCovidCasesPerContinent() {
 
             const ISO_CODES = ["OWID_ASI", "OWID_AFR", "OWID_EUR", "OWID_NAM", "OWID_SAM", "OWID_OCE"];
@@ -509,11 +575,15 @@
 
             finalData.sort((x, y) => d3.ascending(x.key, y.key));
 
-
             covidCasesGraph.draw_line(finalData, continentColorScale, displayCovidCasesPerCountry, "COVID-19 Cases by Continent");
 
         }
 
+        /**
+         * High-level function to display COVID-19 cases for a given country.
+         * This filters data that's continent matches the required continent, representing
+         * the data for the required continent.
+         */
         function displayCovidCasesPerCountry(continent) {
 
             var filtered = raw_data.filter(d => d.continent == continent);
@@ -534,17 +604,20 @@
         function displayVaccinesGraph(continent) {
             console.log("Displaying vaccine graph")
         }
+
+        /**
+         * Creates scatter plot for GDP per capita against total cases.
+         */
         function displayWeathVsCasesScatterPlot() {
 
-            // Process data to get data grouped per country, while removing non-country rows
+            // Process data to get data grouped per country, while removing non-country rows.
+            // Also filters around the max date so that all displayed elements are from the
+            // same date.
             var maxDate = new Date(d3.max(raw_data, d => new Date(d.date)))
             var filtered = raw_data
                 .filter(d => new Date(d.date).getTime() === maxDate.getTime())
                 .filter(d => !d.iso_code.includes("OWID"))
-                .filter(d => d.gdp_per_capita > 0)//50,000,000
-
-            // .filter(d => d.gdp_per_capita < 100000)//50,000,000
-            // .filter(d => d.total_cases < 50000000)//50,000,000
+                .filter(d => d.gdp_per_capita > 0)
 
             var countryCovidDataMap = d3.group(filtered, d => d.location)
 
@@ -562,15 +635,16 @@
             // Initialise graph 
 
             // Set Dimensions
-            X_SIZE = 2350;
-            Y_SIZE = 650;
-            X_MARGIN = 250;
-            Y_MARGIN = 100;
+            const X_SIZE = 2350;
+            const Y_SIZE = 650;
+            const X_MARGIN = 250;
+            const Y_MARGIN = 100;
 
-            X_MAX = X_SIZE - X_MARGIN * 2;
-            Y_MAX = Y_SIZE - Y_MARGIN * 2;
-            STROKE_WIDTH = 3.5;
-            STROKE_WIDTH_ON_HOVER = 6.5
+            const X_MAX = X_SIZE - X_MARGIN * 2;
+            const Y_MAX = Y_SIZE - Y_MARGIN * 2;
+
+            const numberOfVerticalTicks = 6;
+            const numberOfHorizontalTicks = 7;
 
             // Append SVG Object to the Page
             var svg = d3.select("body")
@@ -580,6 +654,7 @@
                 .append("g")
                 .attr("transform", "translate(" + (X_MARGIN + 50) + "," + Y_MARGIN + ")");
 
+            // Append title
             svg.append("text")
                 .attr("transform", "translate(" + (X_MAX) / 2 + "," + -20 + ")")
                 .attr("font-size", "24px")
@@ -591,16 +666,14 @@
             var xExtent = d3.extent(flattened_data, d => parseInt(d.gdp_per_capita))
             var yExtent = d3.extent(flattened_data, d => parseInt(d.total_cases));
 
-            const numberOfVerticalTicks = 6;
-            const numberOfHorizontalTicks = 7;
 
-            // X Axis
+            // X Scale
             var x = d3.scaleLog()
                 .base(2)
                 .domain([xExtent[0], xExtent[1]])
                 .range([0, X_MAX]);
 
-            //Bottom  
+            // X Axis  
             svg.append("g")
                 .attr("class", "bottom_axis")
                 .call(d3.axisBottom(x).ticks(numberOfVerticalTicks))
@@ -613,12 +686,13 @@
                 .attr("font-size", "20px")
                 .text("GDP per capita");
 
-            // Y Axis
+            // Y Scale
             var y = d3.scaleLog()
                 .domain([yExtent[0], yExtent[1]])
                 .range([Y_MAX, 0])
                 .base(10)
 
+            // Y Axis
             svg.append("g")
                 .attr("class", "left_axis")
                 .call(d3.axisLeft(y).ticks(numberOfHorizontalTicks))
@@ -641,18 +715,16 @@
                 .attr("y2", d => y(d))
                 .attr("stroke", "#d3d3d3")
                 .attr("stroke-width", "0.5px");
-
             svg.selectAll("verticalGridline").data(x.ticks(numberOfVerticalTicks)).enter()
                 .append("line")
                 .attr("x1", d => x(d))
                 .attr("x2", d => x(d))
                 .attr("y1", 0)
                 .attr("y2", Y_MAX)
-
                 .attr("stroke", "#d3d3d3")
                 .attr("stroke-width", "0.5px");
 
-
+            //Append scatter plot points
             var scatterPlotPoints = svg.append('g')
                 .selectAll("dot")
                 .data(data, d => d.key)
@@ -661,71 +733,19 @@
                 .attr("cx", (d) => x(d.value.gdp_per_capita))
                 .attr("cy", (d) => y(d.value.total_cases))
                 .attr("r", 3.5)
-                .style("fill", (d, i) => continentColorScale(d.value.continent))
-                .on("mouseover", function (m, s) {
-
-                    //Emphasise hovered element
-                    var hoveredCircle = d3.select(this);
-                    const ORIGINAL_COLOR = hoveredCircle.style("fill");
-                    svg.selectAll(".scatterPlotPoint")
-                        .style("fill", (d) => d.key == s.key ? ORIGINAL_COLOR : "#f1f1f1")
-                        .attr("r", (d) => d.key == s.key ? selectedDotRadius : dotRadius)
-                    hoveredCircle.raise(); //Display on top
-
-                    //Emphasise on legend
-                    svg.selectAll(".legendText")
-                        .style("fill", (d) => {
-                            return d == s.value.continent ? "black" : "#f1f1f1"
-                        })
-                        .style("font-weight", (d) => d == s.value.continent ? "bold" : "normal")
-                    svg.selectAll(".legendCircle").style("fill", (d) => d == s.value.continent ? ORIGINAL_COLOR : "#f1f1f1")
-
-                    //Emphasise on line graph
-                    var lines = d3.selectAll(".line")
-                        .attr("stroke", (d, i, elements) => {
-                            const isSameContinent = d.key == s.value.continent;
-                            const isSameCountry = d.key == s.key;
-                            d.originalColor = d3.select(elements[i]).attr("stroke");
-                            return (isSameContinent || isSameCountry || d.key == "World") ? d.originalColor : "#f1f1f1"
-                        })
-                })
-                .on("mouseout", function (m, s) {
-                    //Reset all scatter points
-                    svg.selectAll(".scatterPlotPoint")
-                        .attr("r", dotRadius)
-                        .style("fill", (d, i) => {
-                            return continentColorScale(d.value.continent)
-                        });
-                    //Reset legend
-                    svg.selectAll(".legendText")
-                        .style("fill", "black")
-                        .style("font-weight", "normal");
-                    svg.selectAll(".legendCircle").style("fill", (d, i) => continentColorScale(d));
-
-                    //Reset  line graph
-                    var lines = d3.selectAll(".line")
-                        .attr("stroke", (d) => {
-                            return d.originalColor
-                        })
-                    // .attr("stroke-width", (d, i, elements) => {
-                    //     return (isSameContinent || isSameContinent) ? Chart.STROKE_WIDTH_ON_HOVER : d3.select(elements[i]).attr("stroke-width");
-                    // })
-
-                });
+                .style("fill", (d, i) => continentColorScale(d.value.continent));
 
             // Best Fit Line, based on https://stackoverflow.com/questions/57559499/plotting-a-trendline-with-d3-actual-forecast
             var regression = ss.linearRegression(data.map(d => {
                 return [+d.value.gdp_per_capita, +d.value.total_cases]
             }))
             var lin = ss.linearRegressionLine(regression)
-
             var lindata = x.domain().map(x => {
                 return {
                     gdpPerCapita: x,
                     totalCases: lin(+x)
                 }
             })
-
             svg.append("path")
                 .datum(lindata)
                 .style("stroke-dasharray", ("20, 20"))
@@ -741,91 +761,89 @@
                         })
                         (d);
                 });
-            ;
 
-
-
+            // Create brushing of scatter plot points to select multiple elements
+            // in drawn bounding box. Associated countries of these points will be
+            // emphasised on the map, and the data assoicated with these points will be drawn
+            // on the line graph. 
             var brush = d3.brush()
-                .on("brush", highlightBrushedCircles)
-                .on("end", resetBrush)
-            svg.append("g").call(brush)
+                .on("brush", function (event) {
 
-            function highlightBrushedCircles(event) {
+                    //Reset colours on scatter plot and map
+                    scatterPlotPoints
+                        .style("fill", "#f1f1f1")
+                    d3.selectAll(".country")
+                        .style("fill", "#f1f1f1")
 
-                //Reset colours on scatter plot and map
-                scatterPlotPoints
-                    .style("fill", "#f1f1f1")
-                d3.selectAll(".country")
-                    .style("fill", "#f1f1f1")
+                    if (event.selection != null) {
 
-                if (event.selection != null) {
-                    var brushCoords = d3.brushSelection(this)
-                    var selectedPoints = scatterPlotPoints.filter(function () {
-                        const cx = d3.select(this).attr("cx");
-                        const cy = d3.select(this).attr("cy");
+                        //Get selected points, and emphasise them on scatter plot.
+                        var brushCoords = d3.brushSelection(this)
+                        var selectedPoints = scatterPlotPoints.filter(function () {
+                            const cx = d3.select(this).attr("cx");
+                            const cy = d3.select(this).attr("cy");
 
+                            const x0 = brushCoords[0][0];
+                            const x1 = brushCoords[1][0];
+                            const y0 = brushCoords[0][1];
+                            const y1 = brushCoords[1][1];
+                            return x0 <= cx && cx <= x1 && y0 <= cy && cy <= y1;
+                        })
+                            .style("fill", function (d, i) {
+                                return continentColorScale(d.value.continent)
+                            })
+                            .attr("r", selectedDotRadius)
 
-                        const x0 = brushCoords[0][0];
-                        const x1 = brushCoords[1][0];
-                        const y0 = brushCoords[0][1];
-                        const y1 = brushCoords[1][1];
-                        return x0 <= cx && cx <= x1 && y0 <= cy && cy <= y1;
-                    })
-                        .style("fill", function (d, i) {
+                        //Get the linked country elements from the map
+                        var linkedCountries = d3.selectAll(".country").filter(function (a) {
+                            return selectedPoints.data().find(point => point.key == a.properties.name)
+                        })
+
+                        //Get the selected country's names
+                        var selectedCountries = selectedPoints.data().map(d => {
+                            return d.key
+                        })
+
+                        //Create scale from selected countries
+                        selectedCountriesColorScale = d3.scaleOrdinal().domain(selectedCountries).range(d3.schemeSet3);
+
+                        //Emphasise the linked countries on the map by updating the colour
+                        linkedCountries.style("fill", d => {
+                            return selectedCountriesColorScale(d.properties.name)
+                        })
+
+                        // Get data associated with selected countries
+                        var filtered = raw_data.filter(d => selectedCountries.includes(d.location));
+                        var continentCovidDataMap = d3.group(filtered, d => d.location)
+                        var finalData = Array.from(continentCovidDataMap, function (item) {
+                            return { key: item[0], values: item[1] }
+                        });
+
+                        // Update line graph to display COVID cases.
+                        covidCasesGraph.draw_line(finalData, selectedCountriesColorScale, null, "COVID-19 Cases for Selection")
+                    }
+                })
+                .on("end", function ({ selection }) {
+                    if (selection) { return; }
+                    displayCovidCasesWorld()
+                    //Reset scatter plot points
+                    scatterPlotPoints
+                        .transition()
+                        .duration(500)
+                        .style("fill", d => {
                             return continentColorScale(d.value.continent)
                         })
-                        .attr("r", selectedDotRadius)
+                        .attr("r", dotRadius)
+                    //Reset map
+                    d3.selectAll(".country")
+                        .transition()
+                        .duration(500)
+                        .style("fill", "#f1f1f1")
+                })
 
-                    var linkedCountries = d3.selectAll(".country").filter(function (a) {
-                        return selectedPoints.data().find(point => point.key == a.properties.name)
-                    })
+            svg.append("g").call(brush)
 
-                    var selectedCountries = selectedPoints.data().map(d => {
-                        return d.key
-                    })
-
-                    selectedCountriesColorScale = d3.scaleOrdinal().domain(selectedCountries).range(d3.schemeSet3);
-
-                    linkedCountries.style("fill", d => {
-                        return selectedCountriesColorScale(d.properties.name)
-                    })
-
-                    var filtered = raw_data.filter(d => selectedCountries.includes(d.location));
-
-                    var continentCovidDataMap = d3.group(filtered, d => d.location)
-
-                    var finalData = Array.from(continentCovidDataMap, function (item) {
-                        return { key: item[0], values: item[1] }
-                    });
-
-
-                    covidCasesGraph.draw_line(finalData, selectedCountriesColorScale, null, "COVID-19 Cases for Selection")
-                }
-            }
-
-            function resetBrush({ selection }) {
-                if (selection) { return; }
-                displayCovidCasesWorld()
-                //Reset scatter plot points
-                scatterPlotPoints
-                    .transition()
-                    .duration(500)
-                    .style("fill", d => {
-                        return continentColorScale(d.value.continent)
-                    })
-                    .attr("r", dotRadius)
-                //Reset map
-                d3.selectAll(".country")
-                    .transition()
-                    .duration(500)
-                    .style("fill", "#f1f1f1")
-
-
-            }
-
-
-
-            //Legend
+            //Create scatter plot legend
             const SPACE_OF_ELEMENTS = 5;
             const NUMBER_OF_ELEMENTS_PER_COLUMN = 30;
             const SPACE_BETWEEN_ROWS = 20;
@@ -841,12 +859,14 @@
                 .data(continents)
                 .join(
                     function (enter) {
-
-                        var legend_element_container =
+                        var legendElementContainer =
                             enter.append("g")
                                 .attr("class", "legendScatter")
+                                // On hover, emphasise hovered country on map, and emphasise
+                                // associated elements of the country's cluster.
                                 .on("mouseover", function (m, s) {
 
+                                    //Highlight scatter points within cluster.
                                     var hoveredCircle = d3.select(this).select("circle");
                                     const ORIGINAL_COLOR = hoveredCircle.style("fill");
                                     var points = svg.selectAll(".scatterPlotPoint")
@@ -859,21 +879,21 @@
                                             return d.value.continent == s ? selectedDotRadius : dotRadius
                                         })
 
-
+                                    //Highlight legend element
                                     svg.selectAll(".legendText")
                                         .style("fill", (d) => d == s ? "black" : "#f1f1f1")
                                         .style("font-weight", (d) => d == s ? "bold" : "normal")
                                     svg.selectAll(".legendCircle").style("fill", (d) => {
                                         return d == s ? ORIGINAL_COLOR : "#f1f1f1"
                                     })
-                                    //Emphasise on line graph
-                                    var lines = d3.selectAll(".line")
-                                        .attr("stroke", (d, i, elements) => {
-                                            const isSameContinent = d.key == s;
-                                            const isSameCountry = d.values[0].continent == s;
-                                            d.originalColor = d3.select(elements[i]).attr("stroke");
-                                            return (isSameContinent || isSameCountry || d.key == "World") ? d.originalColor : "#f1f1f1"
-                                        })
+                                    //Display covid cases per continent, with emphasis on highlighted country.
+                                    displayCovidCasesPerContinent()
+                                    var line = d3.selectAll(".line").filter(function (line) {
+                                        console.log(line.key, s)
+                                        return line.key == s
+                                    })
+                                        .transition("pulseEnter")
+                                        .attr("stroke-width", Chart.STROKE_WIDTH_ON_HOVER)
 
                                     //Emphasise on map
                                     d3.selectAll(".country").filter(function (d) {
@@ -897,21 +917,17 @@
                                     })
 
                                     //Reset line graph
-                                    var lines = d3.selectAll(".line")
-                                        .attr("stroke", (d, i, elements) => {
-                                            return d.originalColor;
-                                        })
+                                    displayCovidCasesWorld()
                                     //Reset map
                                     d3.selectAll(".country")
                                         .transition()
                                         .duration(500)
                                         .style("fill",
                                             "#f1f1f1")
-
-
                                 })
 
-                        legend_element_container.append("circle")
+                        // Append circle and text for the legend, in row-column layout.
+                        legendElementContainer.append("circle")
                             .attr("class", "legendCircle")
                             .attr("cx", (d, i) => {
                                 return X_MAX + CIRCLE_HORZ_OFFSET;
@@ -923,7 +939,7 @@
                             .style("fill", d =>
                                 continentColorScale(d)
                             )
-                        legend_element_container.append("text")
+                        legendElementContainer.append("text")
                             .attr("class", "legendText")
                             .attr("x", (d, i) => {
                                 return X_MAX + TEXT_HORZ_OFFSET;
@@ -940,21 +956,22 @@
                         exit.remove()
                     }
                 )
-
-
         }
 
+        /**
+         * High-level function to display COVID-19 Geographical map, with bubbles that
+         * indicate the total cases in a given continent via radius, and the number of vaccinations
+         * per 100 citizens as the colour, adding additional dimensionality to the map.
+         */
         function displayCovidMap() {
             // Set Dimensions
-            X_SIZE = 1150;
-            Y_SIZE = 750;
-            X_MARGIN = 50;
-            Y_MARGIN = 50;
+            const X_SIZE = 1150;
+            const Y_SIZE = 750;
+            const X_MARGIN = 50;
+            const Y_MARGIN = 50;
 
-            X_MAX = X_SIZE - X_MARGIN * 2;
-            Y_MAX = Y_SIZE - Y_MARGIN * 2;
-            STROKE_WIDTH = 3.5;
-            STROKE_WIDTH_ON_HOVER = 6.5
+            const X_MAX = X_SIZE - X_MARGIN * 2;
+            const Y_MAX = Y_SIZE - Y_MARGIN * 2;
 
             // Append SVG Object to the Page
             var svg = d3.select("body")
@@ -964,6 +981,7 @@
                 .append("g")
                 .attr("transform", "translate(" + X_MARGIN + "," + Y_MARGIN + ")");
 
+            // Add title
             svg.append("text")
                 .attr("transform", "translate(" + (X_MAX) / 2 + "," + -20 + ")")
                 .attr("font-size", "24px")
@@ -974,7 +992,8 @@
             d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(mapData => {
 
 
-                //Rename to align with OWID dataset.
+                //Rename to align with OWID dataset. This is not exhaustive, most noticeably some African countries
+                // are not linked, and highlights the issue of dataset naming inconsistency.
                 mapData.features.forEach(element => {
                     switch (element.properties.name) {
                         case "USA":
@@ -991,15 +1010,17 @@
                     }
                 });
 
+                // Filter elements by the maximum date so displayed bubbles are based
+                // on the same date.
                 var maxDate = new Date(d3.max(raw_data, d => new Date(d.date)))
-
-
                 var filtered = raw_data.filter(d => !d.iso_code.includes("OWID"))
                     .filter(d => new Date(d.date).getTime() === maxDate.getTime());
                 var countryCovidDataMap = d3.group(filtered, d => d.location)
 
 
                 var countryData = new Map()
+                // Create countryData map, while also attaching the continent field
+                // to each country entry of mapData. As previously mentioned, not every country is linked.
                 countryCovidDataMap.forEach(function (val, key) {
                     countryData.set(key, val)
 
@@ -1010,11 +1031,10 @@
 
                     if (indexOfMapDataContainingCountry > 0) {
                         mapData.features[indexOfMapDataContainingCountry].continent = val[0].continent;
-                    }// else {
-                    //     console.log("No country found for ", key, indexOfMapDataContainingCountry)
-                    // }
+                    } else {
+                        console.log("No country found for ", indexOfMapDataContainingCountry)
+                    }
                 })
-
 
                 //Create map
                 const projection = d3.geoMercator()
@@ -1029,30 +1049,39 @@
                     .append("path")
                     .attr("class", "country")
                     .attr("id", d => {
+                        // If d.continent is undefined ie. there is a naming inconsistency between
+                        // mapData and the COVID-19 dataset, then give it the UnknownContinent ID.
+                        // Otherwise, set it to the continent, but remove any spaces
+                        // ie. "North America" => "NorthAmerica", spaces are invalid in the ID.
                         return d.continent != undefined ? d.continent.split(" ").join("") : "UnknownContinent"
-
                     })
                     .attr("d", (d) => path(d))
                     .attr("fill", "#f1f1f1")
                     .style("stroke", "black")
                     .style("stroke-width", 0);
+
+                // Upon hovering a path ie. a country, highlight all countries on the same continent,
+                // and emphasise country on other graphs.
                 paths.on("mouseover", function (m, s) {
 
+                    // Check to make sure no country has been clicked (selected). Selecting a country is
+                    // priority over hover events.
                     const isAnyContinentSelected = paths.filter(path => {
                         return path.clicked == true
                     }).size() > 0 ? true : false;
 
                     if (s.continent != undefined && !isAnyContinentSelected) {
+
+                        //Highlight all countries on the hovered continent (ie. highlight the continent)
                         d3.selectAll("#" + s.continent.split(" ").join(""))
                             .transition("continentHover")
                             .duration(200)
                             .style("fill", d => continentColorScale(s.continent))
 
-
-
                         //Display breakdown per continent, with emphasis on the selected continent
                         displayCovidCasesPerContinent()
 
+                        // Emphasise hovered continent on line graph.
                         var line = d3.selectAll(".line").filter(function (line) {
                             return line.key == s.continent
                         })
@@ -1077,18 +1106,22 @@
                             })
                     }
                 })
+                    // On mouseout, reset elements if nothing has been clicked (selected).
+                    // Selection takes priority.
                     .on("mouseout", function (m, s) {
                         const isAnyContinentSelected = paths.filter(path => {
                             return path.clicked == true
                         }).size() > 0 ? true : false;
 
                         if (!isAnyContinentSelected) {
+                            //Reset  map
                             d3.selectAll(".country")
                                 .transition("pulseExit")
                                 .duration(200)
                                 .style("fill", "#f1f1f1")
                                 .style("stroke-width", 0)
 
+                            // Reset lines
                             d3.selectAll(".line")
                                 .attr("stroke-width", Chart.STROKE_WIDTH)
 
@@ -1102,11 +1135,15 @@
                             displayCovidCasesWorld()
                         }
                     })
+                    // Can click on a given country to show more details of the country's 
+                    // continent on the line graph. 
                     .on("click", function (m, s) {
 
+                        // Ensure that the country clicked has an associated continent. Otherwise we cannot display
+                        // the continent on the graph.
                         if (s.continent != undefined) {
 
-                            // Deselect all paths
+                            // Deselect all other countries.
                             paths.each(function (path) {
                                 if (path.continent != s.continent) {
 
@@ -1124,10 +1161,13 @@
 
                             });
 
+                            // Update clicked field for the clicked continent.
+                            // If its undefined ie. never clicked before, it is now clicked.
+                            // Otherwise, invert it.
                             s.clicked = (s.clicked == undefined) ? true : !s.clicked;
                             if (s.clicked == true) {
 
-
+                                // Add outline to selected continent.
                                 d3.selectAll("#" + s.continent.split(" ").join(""))
                                     .transition("continentClick")
                                     .duration(200)
@@ -1137,7 +1177,7 @@
 
                                 //Display breakdown per continent, with emphasis on the selected continent
                                 displayCovidCasesPerCountry(s.continent)
-
+                                //Emphasise continent's associated line
                                 var line = d3.selectAll(".line").filter(function (line) {
                                     return line.key == s.continent
                                 })
@@ -1147,25 +1187,20 @@
                                 //Highlight continent on scatter plot
                                 d3.selectAll(".scatterPlotPoint").filter(function (point) {
                                     return point.value.continent
+                                }).style("fill", (d, i, elements) => {
+                                    const isSameContinent = d.value.continent == s.continent;
+                                    // Additionally check if s.key==World, to prevent updating points when hovering over world plot.
+                                    return (isSameContinent) ? d3.select(elements[i]).style("fill") : "#f1f1f1";
                                 })
-
-                                //Highlight scatter plot
-                                d3.selectAll(".scatterPlotPoint")
-                                    .style("fill", (d, i, elements) => {
-                                        const isSameContinent = d.value.continent == s.continent;
-                                        // Additionally check if s.key==World, to prevent updating points when hovering over world plot.
-                                        return (isSameContinent) ? d3.select(elements[i]).style("fill") : "#f1f1f1";
-                                    })
                             } else {
+                                // Continent has been deselected. Reset.
                                 d3.selectAll("#" + s.continent.split(" ").join(""))
                                     .transition("continentClickHide")
                                     .duration(200)
                                     .style("stroke-width", "0")
                                 displayCovidCasesPerContinent()
-
                             }
                         }
-
                     });
 
                 //Create country centroids
@@ -1174,7 +1209,9 @@
                     return [d.properties.name, { x: centroid[0], y: centroid[1] }]
                 }))
 
-
+                // Add centroid to each country. If no centroid exists, delete the element.
+                // This will be caused by naming misconsistencies between datasets, so without a centroid,
+                // there is nothing to display.
                 countryData.forEach((data, key) => {
                     if (countryCentroids.has(key)) {
                         data.centroid = countryCentroids.get(key)
@@ -1183,13 +1220,17 @@
                     }
                 })
 
+                // Get extents (upper-lower limits) of total cases.
                 var totalCasesExtents = d3.extent(countryData, d => {
                     return parseInt(d[1][0].total_cases);
                 })
+
+                // Create radius scale.
                 var radiusScale = d3.scaleSqrt()
                     .domain(totalCasesExtents)
                     .range([0, 40]);
 
+                // Get vaccinations, and create colour scale based on number of vaccinated per 100 citizens.
                 var vaccinationMap = getVaccinationsMap()
                 var vaccinationExtents = d3.extent(vaccinationMap, d => {
                     return parseInt(d[1]);
@@ -1198,6 +1239,8 @@
                     .domain(vaccinationExtents)
                     .range(["red", "blue"]);
 
+                // Add bubbles to chart, with radius based on total cases, and color based on number of
+                // vaccinated per 100 citizens.
                 svg.append("g")
                     .selectAll("circle")
                     .data(countryData)
@@ -1228,6 +1271,9 @@
                 const titleVerticalOffset = 35;
                 const extentLabelFontSize = 20;
                 const titleLabelFontSize = 21;
+
+                // Create rectangle with colour gradient to show the meaning
+                // of bubble colours.
                 var gradient = svg.append("defs")
                     .append("linearGradient")
                     .attr("id", "gradient")
@@ -1246,7 +1292,6 @@
                     .attr("stop-color", "blue")
                     .attr("stop-opacity", 1);
                 var mapColorLegend = svg.append("g")
-
                 mapColorLegend.append("rect")
                     .attr("x", barX)
                     .attr("y", barY)
@@ -1285,7 +1330,10 @@
             })
 
         }
-
+        /**
+         * Creates vaccinations map, where the key is the country and the value is the total vaccinations
+         * per 100 citizens.
+         */
         function getVaccinationsMap() {
             var maxDate = new Date(d3.max(vaccinations, d => new Date(d.date)))
 
@@ -1313,12 +1361,10 @@
         d3.csv('https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv')
             .then(function (data) {
                 window.raw_data = data; //global data;
-                const continents = ["Asia", "Africa", "Europe", "North America", "South America", "Oceania"];
                 window.continentColorScale = d3.scaleOrdinal().domain([data]).range(d3.schemeSet3);
 
             })
             .then(function () {
-
                 displayCovidMap()
                 window.covidCasesGraph = new Chart();
                 displayCovidCasesWorld()
