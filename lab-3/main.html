@@ -1032,14 +1032,14 @@
                     if (indexOfMapDataContainingCountry > 0) {
                         mapData.features[indexOfMapDataContainingCountry].continent = val[0].continent;
                     } else {
-                        console.log("No country found for ", indexOfMapDataContainingCountry)
+                        console.log("No country found for ", key)
                     }
                 })
 
                 //Create map
                 const projection = d3.geoMercator()
                     .scale(160)
-                    .center([150, 70])
+                    .center([0, 50])
                     .translate([X_MAX / 2, Y_MAX / 2]);
                 const path = d3.geoPath(projection);
 
