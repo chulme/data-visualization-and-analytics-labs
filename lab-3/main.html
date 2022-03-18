@@ -597,13 +597,10 @@
             var finalData = Array.from(countryData, function (item) {
                 return { key: item[0], values: item[1] }
             });
-            covidCasesGraph.draw_line(finalData, colorScale, displayVaccinesGraph, "COVID-19 Cases in " + continent)
+            covidCasesGraph.draw_line(finalData, colorScale, null, "COVID-19 Cases in " + continent)
 
         }
 
-        function displayVaccinesGraph(continent) {
-            console.log("Displaying vaccine graph")
-        }
 
         /**
          * Creates scatter plot for GDP per capita against total cases.
@@ -889,7 +886,6 @@
                                     //Display covid cases per continent, with emphasis on highlighted country.
                                     displayCovidCasesPerContinent()
                                     var line = d3.selectAll(".line").filter(function (line) {
-                                        console.log(line.key, s)
                                         return line.key == s
                                     })
                                         .transition("pulseEnter")
