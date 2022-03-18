@@ -1174,7 +1174,6 @@
                                     .style("stroke-width", "1")
                                     .style("fill", continentColorScale(s.continent))
 
-
                                 //Display breakdown per continent, with emphasis on the selected continent
                                 displayCovidCasesPerCountry(s.continent)
                                 //Emphasise continent's associated line
@@ -1185,13 +1184,16 @@
                                     .attr("stroke-width", Chart.STROKE_WIDTH_ON_HOVER)
 
                                 //Highlight continent on scatter plot
-                                d3.selectAll(".scatterPlotPoint").filter(function (point) {
-                                    return point.value.continent
-                                }).style("fill", (d, i, elements) => {
-                                    const isSameContinent = d.value.continent == s.continent;
-                                    // Additionally check if s.key==World, to prevent updating points when hovering over world plot.
-                                    return (isSameContinent) ? d3.select(elements[i]).style("fill") : "#f1f1f1";
-                                })
+                                var scatterPoints = d3.selectAll(".scatterPlotPoint")
+                                    .transition()
+                                    .duration(500)
+                                    .style("fill", (d) => {
+                                        const isSameContinent = d.value.continent == s.continent;
+                                        return (isSameContinent) ? continentColorScale(d.value.continent) : "#f1f1f1";
+                                    }).attr("r", (d) => {
+                                        const isSameContinent = d.value.continent == s.continent;
+                                        return (isSameContinent) ? selectedDotRadius : dotRadius;
+                                    })
                             } else {
                                 // Continent has been deselected. Reset.
                                 d3.selectAll("#" + s.continent.split(" ").join(""))
