@@ -33,6 +33,9 @@
         const white = "#F5F5F1"
         const whiteDarker = "#c4c4c0"
 
+        const grey = "#4e4b4b"
+        const darkGrey = "#221F1F"
+
         function subscriberArrayToMap(netflixSubscribersByCountry) {
             var map = (d3.group(netflixSubscribersByCountry, d => d.Country));
             map.forEach((element, key) => {
@@ -322,6 +325,7 @@
                 .attr("d", roundedRect(0, titleBarHeight, popupWidth, popupHeight, 6, false, false, true, true))
                 .style("fill", "url(#whiteGradient)")
 
+
             g.append("path")
                 .attr("d", roundedRect(0, 0, popupWidth, 0, 6, true, true, false, false))
                 .transition()
@@ -499,6 +503,25 @@
                 .attr("offset", "100%")
                 .attr("stop-color", whiteDarker)
                 .attr("stop-opacity", 1);
+
+
+            var greyGradient = d3.select("defs")
+                .append("linearGradient")
+                .attr("id", "greyGradient")
+                .attr("x1", "0%")
+                .attr("y1", "0%")
+                .attr("x2", "0%")
+                .attr("y2", "100%")
+                .attr("spreadMethod", "pad");
+            greyGradient.append("stop")
+                .attr("offset", "0%")
+                .attr("stop-color", grey)
+                .attr("stop-opacity", 1);
+            greyGradient.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", darkGrey)
+                .attr("stop-opacity", 1);
+
             var filter = d3.select("defs")
                 .append("filter")
                 .attr("id", "blur")
@@ -578,20 +601,44 @@
                 .style("font-size", "14px")
 
             g.selectAll(".bar")
+
                 .data(content)
                 .join(
                     enter => {
-                        enter.append("rect")
+                        var rect = enter.append("rect")
                             .attr("class", "bar")
                             .attr("x", d => xScale(d["Title"]))
                             .attr("y", d => height)
                             .attr("width", xScale.bandwidth())
-                            .attr("height", 0)
+                            .attr("height", 10)
                             .attr("fill", "url(#redGradient)")
-                            .transition()
+
+                        rect.transition()
                             .duration(500)
                             .attr("height", d => height - yScale(+d["IMDb Score"]))
                             .attr("y", d => yScale(+d["IMDb Score"]))
+
+                        rect
+                            .on("mouseover", function (a, data) {
+                                //Deemphasise all bars
+                                d3.selectAll(".bar")
+                                    .transition()
+                                    .duration(250)
+                                    .style("fill-opacity", d => {
+                                        return d.Title == data.Title ? "1" : "0.4";
+                                    })
+
+                            })
+                            .on("mouseout", (a, b) => {
+                                d3.selectAll(".bar")
+                                    .transition()
+                                    .duration(250)
+
+                                    .style("fill-opacity", 1);
+                                console.log(a, b)
+                            })
+
+
                     },
                     update => {
                         update
