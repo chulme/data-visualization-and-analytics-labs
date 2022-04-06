@@ -769,53 +769,42 @@
         }
 
 
-        function displaySubscribersByCountry(netflixSubscribersByCountry, graphPos, width, height) {
+        function displaySubscribersByRegion(netflixSubscribersByRegion, graphPos, width, height) {
 
+            const numberOfHorzTicks = 5;
+            const duration = 1000;
 
-            const numberOfTicks = 5;
-            console.log(netflixSubscribersByCountry)
-            const numberOfSubscribersLabels = d3.filter(netflixSubscribersByCountry.columns, column => column.includes("Q"))
-
-            //Gets the quarter from labels.
-            var cleanedLabels = new Array;
-            numberOfSubscribersLabels.forEach((label, index, arr) => {
-                cleanedLabels.push(label.replace("# of Subscribers ", ""))
-            })
+            const quarterLabels = d3.filter(netflixSubscribersByRegion.columns, column => column.includes("Q"))
 
             //Converts data into map, where key is country, value is an array of objects containing the number of subscribers
             // across dates (set to the quarter end date)
             var processedData = new Map();
-            netflixSubscribersByCountry.forEach(row => {
-                var values = new Array;
-                cleanedLabels.forEach(quarter => {
-                    values.push({
+            netflixSubscribersByRegion.forEach(region => {
+                var numberOfSubscribersForRegionAcrossTime = new Array;
+                quarterLabels.forEach(quarter => {
+                    numberOfSubscribersForRegionAcrossTime.push({
+                        region: region["Area"],
                         date: fiscalQuarterToDate(quarter),
-                        numberOfSubscribers: row[quarter]
+                        numberOfSubscribers: region[quarter]
                     })
                 })
-                processedData.set(row.Area, values)
+                processedData.set(region.Area, numberOfSubscribersForRegionAcrossTime)
             })
 
             var subscriberExtents = [undefined, undefined];
-            numberOfSubscribersLabels.forEach(quarter => {
-                var extentForQuarter = d3.extent(netflixSubscribersByCountry, d => +d[quarter])
+            quarterLabels.forEach(quarter => {
+                var extentForQuarter = d3.extent(netflixSubscribersByRegion, d => +d[quarter])
                 subscriberExtents[0] = d3.min([+extentForQuarter[0], +subscriberExtents[0]])
                 subscriberExtents[1] = d3.max([+extentForQuarter[1], +subscriberExtents[1]])
             })
 
-            const duration = 1000;
-
-            const firstQuarterDate = fiscalQuarterToDate(cleanedLabels[0]);
+            const firstQuarterDate = fiscalQuarterToDate(quarterLabels[0]);
             const startingDate = new Date(firstQuarterDate.getFullYear(), 0, 1);
+            const lastQuarterDate = fiscalQuarterToDate(quarterLabels[quarterLabels.length - 1]);
+            var now = new Date(firstQuarterDate);
 
-            const lastQuarterDate = fiscalQuarterToDate(cleanedLabels[cleanedLabels.length - 1]);
-            let now = new Date(firstQuarterDate);
-
-
-            //const xScale = d3.scaleOrdinal().range([0, width * 0.33, width * 0.66, width]).domain(cleanedLabels)
-
-            xScale = d3.scaleTime().range([0, width]).domain([startingDate, firstQuarterDate])
-            yScale = d3.scaleLinear().range([0, height]).domain([subscriberExtents[1], 0]);
+            var xScale = d3.scaleTime().range([0, width]).domain([startingDate, firstQuarterDate])
+            var yScale = d3.scaleLinear().range([0, height]).domain([subscriberExtents[1], 0]);
 
 
             var g = d3.select("svg").append("g")
@@ -826,18 +815,8 @@
                 .attr("class", "axis")
                 .attr("id", "bottomAxis")
                 .attr("transform", "translate(0," + height + ")")
-                .call(xScale.axis = d3.axisBottom(xScale).ticks(numberOfTicks))
-
-            //                .call(d3.axisLeft(yScale).ticks(5))
-
-            //.selectAll("text")
-            //.attr("x", -15)
-            //.attr("y", -5)
-
-            // .style("text-anchor", "end")
-            // .style("font-size", "14px")
-            // .style("fill", "white")
-            // .attr("transform", "rotate(-90)")
+                .call(xScale.axis = d3.axisBottom(xScale).ticks(numberOfHorzTicks))
+                .style("font-size", "14px")
 
             g.append("g")
                 .attr("class", "axis")
@@ -852,88 +831,53 @@
                 .attr('width', width)
                 .attr('height', height);
 
-            // var data = processedData.get("United Kingdom"); 
-            // var localData = data.map(el => Object.assign({}, el, { numberOfSubscribers: data[0].numberOfSubscribers }))
 
             var data = processedData;
 
-            var localData = new Map(data);// data.map(el => Object.assign({}, el, { numberOfSubscribers: data[0].numberOfSubscribers }))
+            var localData = new Map(data);
             for ([key, value] of localData) {
                 var t = value.map(el => Object.assign({}, el, { numberOfSubscribers: 0 }))
                 localData.set(key, t)
             }
-            console.log("this print statement", data, localData)
-            // var line = d3.line()
-            //     .curve(d3.curveBasis)
-            //     .x(function (d, i) {
-            //         console.log("d= ", d)
-            //         var x = xScale(d.date);
-            //         return x;
-            //     })
-            //     .y(function (d, i) {
-            //         var y = yScale(d.numberOfSubscribers);
-            //         return y;
-            //     })
-
 
             var paths = g.append("g")
                 .attr("clip-path", "url(#clip)")
-
                 .attr("class", "paths");
-            // .data(localData, (d, i) => {
 
-            //     var ret = d == undefined ? i : d[0];
-            //     return ret;
-            // })
-            var nestedData = d3.group(localData, d => d[0]);
-            console.log(nestedData)
-            var mypaths = paths.selectAll(".line")
+            paths.selectAll(".line")
                 .data(localData.values())
                 .enter()
-
                 .append("path")
-
                 .attr("id", (d, i) => {
-                    var label = "line" + i;//d[0].split(" ").join("");
-                    return label;
+                    var region = d[0].region
+                    return "line" + region.replace(/[^a-zA-Z0-9]/g, ''); // Remove special characters (including spaces). Not valid for HTML ID.
                 })
                 .attr("fill", "none")
                 .attr("stroke", "red")
                 .attr("stroke-width", 1.5)
 
-            //Uncomment to draw line without transition.
-            // d3.select("svg").selectAll('.line')
-            //     .attr('d', line)
-            //     .attr('transform', null);
-
             var transition = d3.select({}).transition()
                 .duration(duration)
                 .ease(d3.easeLinear);
 
-            var counter = 0;
+            var tickCounter = 0;
             (function tick() {
                 transition = transition.each(function () {
-                    var index = 0;
+                    var quarterIndex = 0;
                     data.forEach((val, key) => {
 
-                        // Update the domain of the x-axis
-                        // Push the new data point and pop the old data point off the front
                         var newDataPoint = val.shift();
                         var now = newDataPoint.date;
                         var tempArr = localData.get(key);
-                        for (var i = counter; i < tempArr.length; i++) {
+                        for (var i = tickCounter; i < tempArr.length; i++) {
                             tempArr[i].numberOfSubscribers = newDataPoint.numberOfSubscribers;
                         }
-                        //tempArr[counter] = newDataPoint;
-
                         localData.set(key, tempArr);
 
-                        //localData[counter++] = newDataPoint;
                         xScale.domain([startingDate, newDataPoint.date]);
-                        //xScale.domain([now - (n - 2) * duration, now - duration])
 
                         // Redraw the line
-                        d3.select("#line" + index++)//+ key.split(" ").join(""))
+                        d3.select("#line" + key.replace(/[^a-zA-Z0-9]/g, '')) // Remove special characters (including spaces). Not valid for HTML ID.
                             .transition()
                             .duration(duration)
                             .attr('d', d3.line()
@@ -948,19 +892,14 @@
                                 }))
                             .attr('transform', null);
                     })
-                    // Slide the x-axis left
-                    //d3.axisBottom(xScale)
-                    xAxis.transition().duration(duration).call(xScale.axis.ticks(numberOfTicks))
+                    // Slide x axis to the  left
+                    xAxis.transition().duration(duration).call(xScale.axis.ticks(numberOfHorzTicks))
 
-                    // Slide the line left
-                    // path.transition()
-                    //     .attr('transform', `translate(${xScale(now - (n - 1) * duration)})`);
-                    counter++;
-                    console.log("ticking!");
+                    tickCounter++;
 
                 }).transition()
                     .on('start', () => {
-                        if (counter < numberOfSubscribersLabels.length) {
+                        if (tickCounter < quarterLabels.length) {
                             tick()
                         }
                     })
@@ -1004,7 +943,7 @@
             const boxOfficeExtents = d3.extent(netflixShows, d => +d["Boxoffice"].replace(/[^\w\s]/gi, ''))
             var delay = 0;
             const delayBetweenYearDisplay = 5000;
-            displaySubscribersByCountry(netflixSubscribersByCountry, lineGraphPos, width, height)
+            displaySubscribersByRegion(netflixSubscribersByCountry, lineGraphPos, width, height)
             //centroidDataForEachYear = getCountryCentroidsWithTopContentEachYear(topContent, netflixShows, mapData, path);
 
             // topContent.forEach((content, year) => {
