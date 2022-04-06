@@ -806,10 +806,17 @@
             var xScale = d3.scaleTime().range([0, width]).domain([startingDate, firstQuarterDate])
             var yScale = d3.scaleLinear().range([0, height]).domain([subscriberExtents[1], 0]);
 
-
             var g = d3.select("svg").append("g")
                 .attr("class", "lineGraph")
                 .attr("transform", "translate(" + graphPos[0] + "," + graphPos[1] + ")")
+
+            g.append("text").attr("class", "title")
+                .text("Netflix Subscribers Across Regions")
+                .style("fill", "white")
+                .style("font-family", "Montserrat")
+                .attr("transform", "translate(" + (width / 2) + "," + -20 + ")")
+                .style("text-anchor", "middle")
+                .style("font-size", "20px")
 
             var xAxis = g.append("g")
                 .attr("class", "axis")
@@ -818,19 +825,35 @@
                 .call(xScale.axis = d3.axisBottom(xScale).ticks(numberOfHorzTicks))
                 .style("font-size", "14px")
 
-            g.append("g")
+            xAxis.append("text")
+                .attr("x", (width / 2))
+                .attr("y", 50)
+                .attr("text-anchor", "middle")
+                .text("Date")
+                .style("font-size", "17px")
+
+            var yAxis = g.append("g")
                 .attr("class", "axis")
                 .attr("id", "leftAxis")
                 .call(d3.axisLeft(yScale))
-                .selectAll("text")
+
+            yAxis.selectAll("text")
                 .style("fill", "white")
+                .style("font-size", "14px")
+
+            yAxis.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -100)
+                .attr("x", -(height / 2))
+                .attr("text-anchor", "middle")
+                .text("Number of Netflix Subscribers")
+                .style("font-size", "17px")
 
             d3.select('defs').append('clipPath')
                 .attr('id', 'clip')
                 .append('rect')
                 .attr('width', width)
                 .attr('height', height);
-
 
             var data = processedData;
 
@@ -909,15 +932,16 @@
         }
         Promise.all([
             d3.csv("data/NetflixSubscribersbyCountryfrom2018toQ2_2020.csv"),
-            //        d3.csv("data/NetflixSubscribersbyCountry.csv"),
+            d3.csv("data/NetflixSubscribersbyCountry.csv"),
             d3.csv("data/netflix-rotten-tomatoes-metacritic-imdb.csv"),
             //d3.csv("data/movie_metadata.csv"),
             d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson"),
         ]).then(function (files) {
-            const netflixSubscribersByCountry = files[0]
-            const netflixShows = files[1]
+            const netflixSubscribersByCountry = files[1]
+            const netflixSubscribersByRegion = files[0]
+            const netflixShows = files[2]
             //const movieData = files[2]
-            const mapData = files[2]
+            const mapData = files[3]
 
             // Append SVG Object to the page
             d3.select("body")
@@ -925,8 +949,8 @@
                 .attr('width', 2000)
                 .attr('height', 2000)
             createDefs();
-            //linkCountryNaming(mapData, netflixSubscribersByCountry)
-            //var path = displayMap(mapData, netflixSubscribersByCountry)
+            linkCountryNaming(mapData, netflixSubscribersByCountry)
+            var path = displayMap(mapData, netflixSubscribersByCountry)
             const height = 500;
             const width = 500;
             const graphPos = [500, 100];
@@ -943,8 +967,8 @@
             const boxOfficeExtents = d3.extent(netflixShows, d => +d["Boxoffice"].replace(/[^\w\s]/gi, ''))
             var delay = 0;
             const delayBetweenYearDisplay = 5000;
-            displaySubscribersByRegion(netflixSubscribersByCountry, lineGraphPos, width, height)
-            //centroidDataForEachYear = getCountryCentroidsWithTopContentEachYear(topContent, netflixShows, mapData, path);
+            displaySubscribersByRegion(netflixSubscribersByRegion, lineGraphPos, width, height)
+            // centroidDataForEachYear = getCountryCentroidsWithTopContentEachYear(topContent, netflixShows, mapData, path);
 
             // topContent.forEach((content, year) => {
             //     setTimeout(function () {
