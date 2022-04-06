@@ -291,7 +291,7 @@
 
 
 
-        function displayBubblePopup(e, d) {
+        function displayBubblePopup(e, d, thisElement = this) {
             const popupWidth = 460, popupHeight = 150;
             const titleBarHeight = 30;
             const horzOffset = 100, vertOffset = -15;
@@ -307,12 +307,13 @@
 
             const titleFontSize = "20px";
             const infoFontSize = "17px";
-            const bubbleCentroid = d[1].centroid;
-            const movieData = d[1].topContent;
-            const region = d[0];
+            const elementClass = d3.select(thisElement).attr("class");
 
-            var g = d3.select(this)
-                .raise()
+
+            const bubbleCentroid = { x: d3.pointer(e)[0], y: d3.pointer(e)[1] }
+            console.log(bubbleCentroid, d3.pointer(e));
+            var movieData = (elementClass == "bubble") ? d[1].topContent : d;
+            var g = d3.select("svg")
                 .append("g")
                 .attr("class", "bubblePopup")
                 .attr("transform", "translate(" + (bubbleCentroid.x + horzOffset) + "," + (bubbleCentroid.y + vertOffset) + ")")
@@ -461,7 +462,7 @@
             return retval;
         }
         function removeBubblePopup(e, d) {
-            d3.select(this).selectAll(".bubblePopup")
+            d3.selectAll(".bubblePopup")
                 .transition()
                 .duration(150)
                 .style("opacity", 0)
@@ -619,20 +620,23 @@
                             .attr("y", d => yScale(+d["IMDb Score"]))
 
                         rect
-                            .on("mouseover", function (a, data) {
+                            .on("mouseover", function (mouseInfo, data) {
                                 d3.selectAll(".bar")
                                     .transition()
                                     .duration(250)
                                     .style("fill-opacity", d => {
                                         return d.Title == data.Title ? "1" : "0.4";
                                     })
+                                console.log("d3event", d3.event);
+                                displayBubblePopup(mouseInfo, data, this)
 
                             })
-                            .on("mouseout", (a, b) => {
+                            .on("mouseout", (mouseInfo, data) => {
                                 d3.selectAll(".bar")
                                     .transition()
                                     .duration(250)
                                     .style("fill-opacity", 1);
+                                removeBubblePopup(mouseInfo);
                             })
 
 
@@ -931,6 +935,7 @@
                 .data(localData.values())
                 .enter()
                 .append("path")
+                .attr("class", "line")
                 .attr("id", (d, i) => {
                     var region = d[0].region
                     return "line" + region.replace(/[^a-zA-Z0-9]/g, ''); // Remove special characters (including spaces). Not valid for HTML ID.
@@ -988,6 +993,7 @@
                         d3.select("#line" + key.replace(/[^a-zA-Z0-9]/g, '')) // Remove special characters (including spaces). Not valid for HTML ID.
                             .transition()
                             .duration(duration)
+                            .ease(d3.easeLinear)
                             .attr('d', d3.line()
                                 .curve(d3.curveBasis)
                                 .x(function (d, i) {
@@ -1001,7 +1007,8 @@
                             .attr('transform', null);
                     })
                     // Slide x axis to the  left
-                    xAxis.transition().duration(duration).call(xScale.axis.ticks(numberOfHorzTicks))
+                    xAxis.transition().ease(d3.easeLinear).duration(duration).call(xScale.axis.ticks(numberOfHorzTicks))
+
 
                     tickCounter++;
 
@@ -1054,11 +1061,11 @@
 
             displaySubscribersByRegion(netflixSubscribersByRegion, lineGraphPos, lineGraphSize[0], lineGraphSize[1])
 
-            const year = 2019;
-            var centroids = mapCentroidsToData(netflixShows, mapData, path, year)
-            displayTopContentBubbles(centroids, netflixShows, mapData, path, year, boxOfficeExtents)
-            drawHighestRatedGraph(topContent.get(year), "Highest rated content on Netflix during " + year, barGraphSize[0], barGraphSize[1])
-            drawBoxOfficeSuccessGraph(topContent.get(year), "Box Office success of top content on Netflix during " + year, barGraphSize[0], barGraphSize[1])
+            // const year = 2019;
+            // var centroids = mapCentroidsToData(netflixShows, mapData, path, year)
+            // displayTopContentBubbles(centroids, netflixShows, mapData, path, year, boxOfficeExtents)
+            // drawHighestRatedGraph(topContent.get(year), "Highest rated content on Netflix during " + year, barGraphSize[0], barGraphSize[1])
+            // drawBoxOfficeSuccessGraph(topContent.get(year), "Box Office success of top content on Netflix during " + year, barGraphSize[0], barGraphSize[1])
 
             // centroidDataForEachYear = getCountryCentroidsWithTopContentEachYear(topContent, netflixShows, mapData, path);
             // topContent.forEach((content, year) => {
