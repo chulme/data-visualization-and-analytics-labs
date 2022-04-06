@@ -520,7 +520,7 @@
 
         }
 
-        function drawGraph(content, graphTitle, width, height) {
+        function drawHighestRatedGraph(content, graphTitle, width, height) {
 
             var g = d3.select(".topContentBarGraph")
             g.selectAll(".title")
@@ -567,7 +567,7 @@
                 .style("fill", "white")
                 .attr("transform", "rotate(-90)")
 
-            g.select("g #leftAxis")
+            var yAxis = g.select("g #leftAxis")
                 .attr("class", "axis")
                 .attr("id", "leftAxis")
                 .transition()
@@ -575,6 +575,7 @@
                 .call(d3.axisLeft(yScale).ticks(5))
                 .selectAll("text")
                 .style("fill", "white")
+                .style("font-size", "14px")
 
             g.selectAll(".bar")
                 .data(content)
@@ -607,7 +608,7 @@
                 )
         }
 
-        function drawBudgetGraph(content, graphTitle, width, height) {
+        function drawBoxOfficeSuccessGraph(content, graphTitle, width, height) {
 
             var g = d3.select(".boxOfficeSucessGraph")
             g.selectAll(".title")
@@ -666,6 +667,7 @@
                 .call(d3.axisLeft(yScale).ticks(5))
                 .selectAll("text")
                 .style("fill", "white")
+                .style("font-size", "14px")
 
             g.selectAll(".bar")
                 .data(content)
@@ -985,7 +987,7 @@
             // Append SVG Object to the page
             d3.select("body")
                 .append("svg")
-                .attr('width', 2000)
+                .attr('width', 2200)
                 .attr('height', 2000)
             createDefs();
             linkCountryNaming(mapData, netflixSubscribersByCountry)
@@ -1011,8 +1013,8 @@
             const year = 2019;
             var centroids = mapCentroidsToData(netflixShows, mapData, path, year)
             displayTopContentBubbles(centroids, netflixShows, mapData, path, year, boxOfficeExtents)
-            drawGraph(topContent.get(year), "Highest rated content on Netflix during " + year, barGraphSize[0], barGraphSize[1])
-            drawBudgetGraph(topContent.get(year), "Box Office success of top content on Netflix during " + year, barGraphSize[0], barGraphSize[1])
+            drawHighestRatedGraph(topContent.get(year), "Highest rated content on Netflix during " + year, barGraphSize[0], barGraphSize[1])
+            drawBoxOfficeSuccessGraph(topContent.get(year), "Box Office success of top content on Netflix during " + year, barGraphSize[0], barGraphSize[1])
 
             // centroidDataForEachYear = getCountryCentroidsWithTopContentEachYear(topContent, netflixShows, mapData, path);
             // topContent.forEach((content, year) => {
