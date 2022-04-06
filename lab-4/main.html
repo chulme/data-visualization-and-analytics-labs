@@ -774,6 +774,11 @@
             const numberOfHorzTicks = 5;
             const duration = 1000;
 
+            const SPACE_BETWEEN_ROWS = 25;
+            const CIRCLE_HORZ_OFFSET = 15;
+            const CIRCLE_RADIUS = 8;
+            const LEGEND_HORZ_OFFSET = 70;
+            const LEGEND_VERT_OFFSET= 50;
             const quarterLabels = d3.filter(netflixSubscribersByRegion.columns, column => column.includes("Q"))
 
             var regions = new Array;
@@ -886,6 +891,30 @@
                 .attr("stroke", d => lineColorScheme(d[0]["region"])
                 )
                 .attr("stroke-width", 3.5)
+
+            var legend = g.append("g")
+                .attr("class", "legend")
+                .attr("transform", "translate(" + (width + LEGEND_HORZ_OFFSET) + "," + ((height / 2)- LEGEND_VERT_OFFSET) + ")");
+
+            var legendRow = legend.selectAll(".legendRow")
+                .data(data.keys())
+
+            legendRow.enter()
+                .append("g")
+                .append("text")
+                .attr("y", (d, i) => i * SPACE_BETWEEN_ROWS)
+                .style("fill", "white")
+                .style("font-size", "17px")
+                .style("alignment-baseline", "central")
+                .style("font-family", "Montserrat")
+                .text(d => d)
+
+            legendRow.enter()
+                .append("circle")
+                .attr("cx", -CIRCLE_HORZ_OFFSET)
+                .attr("cy", (d, i) => i * SPACE_BETWEEN_ROWS)
+                .attr("r", CIRCLE_RADIUS)
+                .style("fill",d=>lineColorScheme(d))
 
             var transition = d3.select({}).transition()
                 .duration(duration)
