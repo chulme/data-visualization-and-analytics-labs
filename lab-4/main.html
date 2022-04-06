@@ -760,7 +760,7 @@
         function fiscalQuarterToDate(quarter) {
             const quarterEndMonths = ["March", "June", "September", "December"];
             const month = quarterEndMonths[--quarter[1]];
-            const year = quarter.substring(3, 7);
+            const year = quarter.substring(5, 9);
 
             // Sets date to 30th, while should vary between 30-31st depending on the month,
             // this doesn't add significant value.
@@ -774,7 +774,7 @@
 
             const numberOfTicks = 5;
             console.log(netflixSubscribersByCountry)
-            const numberOfSubscribersLabels = d3.filter(netflixSubscribersByCountry.columns, column => column.includes("# of"))
+            const numberOfSubscribersLabels = d3.filter(netflixSubscribersByCountry.columns, column => column.includes("Q"))
 
             //Gets the quarter from labels.
             var cleanedLabels = new Array;
@@ -790,10 +790,10 @@
                 cleanedLabels.forEach(quarter => {
                     values.push({
                         date: fiscalQuarterToDate(quarter),
-                        numberOfSubscribers: row[numberOfSubscribersLabels.find(l => l.includes(quarter))]
+                        numberOfSubscribers: row[quarter]
                     })
                 })
-                processedData.set(row.Country, values)
+                processedData.set(row.Area, values)
             })
 
             var subscriberExtents = [undefined, undefined];
@@ -803,8 +803,7 @@
                 subscriberExtents[1] = d3.max([+extentForQuarter[1], +subscriberExtents[1]])
             })
 
-            const n = 50;
-            const duration = 1550;
+            const duration = 1000;
 
             const firstQuarterDate = fiscalQuarterToDate(cleanedLabels[0]);
             const startingDate = new Date(firstQuarterDate.getFullYear(), 0, 1);
@@ -860,7 +859,7 @@
 
             var localData = new Map(data);// data.map(el => Object.assign({}, el, { numberOfSubscribers: data[0].numberOfSubscribers }))
             for ([key, value] of localData) {
-                var t = value.map(el => Object.assign({}, el, { numberOfSubscribers: value[0].numberOfSubscribers }))
+                var t = value.map(el => Object.assign({}, el, { numberOfSubscribers: 0 }))
                 localData.set(key, t)
             }
             console.log("this print statement", data, localData)
@@ -922,7 +921,10 @@
                         var newDataPoint = val.shift();
                         var now = newDataPoint.date;
                         var tempArr = localData.get(key);
-                        tempArr[counter] = newDataPoint;
+                        for (var i = counter; i < tempArr.length; i++) {
+                            tempArr[i].numberOfSubscribers = newDataPoint.numberOfSubscribers;
+                        }
+                        //tempArr[counter] = newDataPoint;
 
                         localData.set(key, tempArr);
 
@@ -958,7 +960,7 @@
 
                 }).transition()
                     .on('start', () => {
-                        if (counter < 4) {
+                        if (counter < numberOfSubscribersLabels.length) {
                             tick()
                         }
                     })
@@ -967,10 +969,11 @@
 
         }
         Promise.all([
-            d3.csv("data/NetflixSubscribersbyCountry.csv"),
+            d3.csv("data/NetflixSubscribersbyCountryfrom2018toQ2_2020.csv"),
+            //        d3.csv("data/NetflixSubscribersbyCountry.csv"),
             d3.csv("data/netflix-rotten-tomatoes-metacritic-imdb.csv"),
             //d3.csv("data/movie_metadata.csv"),
-            d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
+            d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson"),
         ]).then(function (files) {
             const netflixSubscribersByCountry = files[0]
             const netflixShows = files[1]
@@ -983,7 +986,7 @@
                 .attr('width', 2000)
                 .attr('height', 2000)
             createDefs();
-            linkCountryNaming(mapData, netflixSubscribersByCountry)
+            //linkCountryNaming(mapData, netflixSubscribersByCountry)
             //var path = displayMap(mapData, netflixSubscribersByCountry)
             const height = 500;
             const width = 500;
