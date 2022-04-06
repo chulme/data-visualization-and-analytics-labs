@@ -778,7 +778,7 @@
             const CIRCLE_HORZ_OFFSET = 15;
             const CIRCLE_RADIUS = 8;
             const LEGEND_HORZ_OFFSET = 70;
-            const LEGEND_VERT_OFFSET= 50;
+            const LEGEND_VERT_OFFSET = 50;
             const quarterLabels = d3.filter(netflixSubscribersByRegion.columns, column => column.includes("Q"))
 
             var regions = new Array;
@@ -894,7 +894,7 @@
 
             var legend = g.append("g")
                 .attr("class", "legend")
-                .attr("transform", "translate(" + (width + LEGEND_HORZ_OFFSET) + "," + ((height / 2)- LEGEND_VERT_OFFSET) + ")");
+                .attr("transform", "translate(" + (width + LEGEND_HORZ_OFFSET) + "," + ((height / 2) - LEGEND_VERT_OFFSET) + ")");
 
             var legendRow = legend.selectAll(".legendRow")
                 .data(data.keys())
@@ -914,7 +914,7 @@
                 .attr("cx", -CIRCLE_HORZ_OFFSET)
                 .attr("cy", (d, i) => i * SPACE_BETWEEN_ROWS)
                 .attr("r", CIRCLE_RADIUS)
-                .style("fill",d=>lineColorScheme(d))
+                .style("fill", d => lineColorScheme(d))
 
             var transition = d3.select({}).transition()
                 .duration(duration)
