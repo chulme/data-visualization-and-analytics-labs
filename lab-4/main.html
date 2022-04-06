@@ -620,7 +620,6 @@
 
                         rect
                             .on("mouseover", function (a, data) {
-                                //Deemphasise all bars
                                 d3.selectAll(".bar")
                                     .transition()
                                     .duration(250)
@@ -633,9 +632,7 @@
                                 d3.selectAll(".bar")
                                     .transition()
                                     .duration(250)
-
                                     .style("fill-opacity", 1);
-                                console.log(a, b)
                             })
 
 
