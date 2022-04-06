@@ -776,6 +776,13 @@
 
             const quarterLabels = d3.filter(netflixSubscribersByRegion.columns, column => column.includes("Q"))
 
+            var regions = new Array;
+
+            netflixSubscribersByRegion.forEach(region => {
+                regions.push(region.Area)
+            })
+            const lineColorScheme = d3.scaleOrdinal().domain(regions).range(d3.schemeSet1);
+
             //Converts data into map, where key is country, value is an array of objects containing the number of subscribers
             // across dates (set to the quarter end date)
             var processedData = new Map();
@@ -876,8 +883,9 @@
                     return "line" + region.replace(/[^a-zA-Z0-9]/g, ''); // Remove special characters (including spaces). Not valid for HTML ID.
                 })
                 .attr("fill", "none")
-                .attr("stroke", "red")
-                .attr("stroke-width", 1.5)
+                .attr("stroke", d => lineColorScheme(d[0]["region"])
+                )
+                .attr("stroke-width", 3.5)
 
             var transition = d3.select({}).transition()
                 .duration(duration)
