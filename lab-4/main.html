@@ -853,40 +853,55 @@
                 .attr('width', width)
                 .attr('height', height);
 
-            var data = processedData.get("United Kingdom");
-            var localData = data.map(el => Object.assign({}, el, { numberOfSubscribers: data[0].numberOfSubscribers }))
+            // var data = processedData.get("United Kingdom"); 
+            // var localData = data.map(el => Object.assign({}, el, { numberOfSubscribers: data[0].numberOfSubscribers }))
 
-            // var data = processedData;
+            var data = processedData;
 
-            // var localData = new Map(data);// data.map(el => Object.assign({}, el, { numberOfSubscribers: data[0].numberOfSubscribers }))
-            // for ([key, value] of localData) {
-            //     var t = value.map(el => Object.assign({}, el, { numberOfSubscribers: value[0].numberOfSubscribers }))
-            //     localData.set(key, t)
-            // }
+            var localData = new Map(data);// data.map(el => Object.assign({}, el, { numberOfSubscribers: data[0].numberOfSubscribers }))
+            for ([key, value] of localData) {
+                var t = value.map(el => Object.assign({}, el, { numberOfSubscribers: value[0].numberOfSubscribers }))
+                localData.set(key, t)
+            }
             console.log("this print statement", data, localData)
-            var line = d3.line()
-                .curve(d3.curveBasis)
-                .x(function (d, i) {
-                    console.log("x d= ", d)
-                    var x = xScale(d.date);
-                    return x;
-                })
-                .y(function (d, i) {
-                    var y = yScale(d.numberOfSubscribers);
-                    return y;
-                })
+            // var line = d3.line()
+            //     .curve(d3.curveBasis)
+            //     .x(function (d, i) {
+            //         console.log("d= ", d)
+            //         var x = xScale(d.date);
+            //         return x;
+            //     })
+            //     .y(function (d, i) {
+            //         var y = yScale(d.numberOfSubscribers);
+            //         return y;
+            //     })
 
 
-            var path = g.append("g")
+            var paths = g.append("g")
                 .attr("clip-path", "url(#clip)")
-                .append("path")
-                .attr("class", "line")
-                //.data(localData)
-                .datum(localData)
 
+                .attr("class", "paths");
+            // .data(localData, (d, i) => {
+
+            //     var ret = d == undefined ? i : d[0];
+            //     return ret;
+            // })
+            var nestedData = d3.group(localData, d => d[0]);
+            console.log(nestedData)
+            var mypaths = paths.selectAll(".line")
+                .data(localData.values())
+                .enter()
+
+                .append("path")
+
+                .attr("id", (d, i) => {
+                    var label = "line" + i;//d[0].split(" ").join("");
+                    return label;
+                })
                 .attr("fill", "none")
                 .attr("stroke", "red")
                 .attr("stroke-width", 1.5)
+
             //Uncomment to draw line without transition.
             // d3.select("svg").selectAll('.line')
             //     .attr('d', line)
@@ -899,32 +914,38 @@
             var counter = 0;
             (function tick() {
                 transition = transition.each(function () {
+                    var index = 0;
+                    data.forEach((val, key) => {
 
-                    //data.forEach((val, key) => {
+                        // Update the domain of the x-axis
+                        // Push the new data point and pop the old data point off the front
+                        var newDataPoint = val.shift();
+                        var now = newDataPoint.date;
+                        var tempArr = localData.get(key);
+                        tempArr[counter] = newDataPoint;
 
-                    // Update the domain of the x-axis
-                    // Push the new data point and pop the old data point off the front
-                    var newDataPoint = data.shift();
-                    localData[counter++] = newDataPoint;
+                        localData.set(key, tempArr);
 
-                    //var newDataPoint = val.shift();
-                    // var now = newDataPoint.date;
-                    // var tempArr = localData.get(key);
-                    // tempArr[counter] = newDataPoint;
+                        //localData[counter++] = newDataPoint;
+                        xScale.domain([startingDate, newDataPoint.date]);
+                        //xScale.domain([now - (n - 2) * duration, now - duration])
 
-                    // localData.set(key, tempArr);
-
-                    //localData[counter++] = newDataPoint;
-                    xScale.domain([startingDate, newDataPoint.date]);
-                    //xScale.domain([now - (n - 2) * duration, now - duration])
-
-                    // Redraw the line
-                    d3.select("svg").select('.line')
-                        .transition()
-                        .duration(duration)
-                        .attr('d', line)
-                        .attr('transform', null);
-                    //})
+                        // Redraw the line
+                        d3.select("#line" + index++)//+ key.split(" ").join(""))
+                            .transition()
+                            .duration(duration)
+                            .attr('d', d3.line()
+                                .curve(d3.curveBasis)
+                                .x(function (d, i) {
+                                    var x = xScale(d.date);
+                                    return x;
+                                })
+                                .y(function (d, i) {
+                                    var y = yScale(d.numberOfSubscribers);
+                                    return y;
+                                }))
+                            .attr('transform', null);
+                    })
                     // Slide the x-axis left
                     //d3.axisBottom(xScale)
                     xAxis.transition().duration(duration).call(xScale.axis.ticks(numberOfTicks))
@@ -933,11 +954,11 @@
                     // path.transition()
                     //     .attr('transform', `translate(${xScale(now - (n - 1) * duration)})`);
                     counter++;
-
+                    console.log("ticking!");
 
                 }).transition()
                     .on('start', () => {
-                        if (data.length > 0) {
+                        if (counter < 4) {
                             tick()
                         }
                     })
