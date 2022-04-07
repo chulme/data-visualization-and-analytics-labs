@@ -524,12 +524,11 @@
                 .attr("stop-color", darkGrey)
                 .attr("stop-opacity", 1);
 
-            var filter = d3.select("defs")
+            var blur = d3.select("defs")
                 .append("filter")
                 .attr("id", "blur")
                 .append("feGaussianBlur")
                 .attr("stdDeviation", 1);
-
 
 
         }
@@ -640,15 +639,37 @@
                                 d3.selectAll(".scatterPlotPoint")
                                     .transition("scatterHoverTrans")
                                     .duration(1000)
-
                                     .style("fill-opacity", d => {
                                         return d.Title == data.Title ? "1" : "0.2";
                                     })
-
                                     .attr("r", d => {
                                         return d.Title == data.Title ? 8 : 1;
                                     })
 
+                                d3.selectAll(".bubble")
+                                    .transition()
+                                    .duration(250)
+                                    .attr("opacity", d => {
+                                        return d[1].topContent.Title == data.Title ? 1 : 0.6;
+                                    })
+                                    .select("circle")
+                                    .attr("stroke", d => {
+                                        return d[1].topContent.Title == data.Title ? netflixColor : "black";
+                                    })
+                                    .attr("stroke-width", d => {
+                                        return d[1].topContent.Title == data.Title ? "8px" : "1px";
+
+                                    })
+
+                                d3.selectAll(".bubble")
+                                    .selectAll("image")
+                                    .transition()
+                                    .duration(250)
+                                    .style("opacity", d => {
+                                        return d[1].topContent.Title == data.Title ? 1 : 0.7;
+
+                                    })
+                                d3.selectAll(".bubble").filter(d => d[1].topContent.Title == data.Title).raise()
 
                                 displayBubblePopup(mouseInfo, data, this)
 
@@ -666,10 +687,24 @@
                                 d3.selectAll(".scatterPlotPoint")
                                     .transition("scatterExitTrans")
                                     .duration(1000)
-
                                     .style("fill-opacity", 1)
                                     .attr("fill", netflixColor)
                                     .attr("r", 1);
+
+                                d3.selectAll(".bubble")
+                                    .transition()
+                                    .duration(250)
+                                    .attr("opacity", 1)
+                                    .select("circle")
+                                    .attr("stroke", "black")
+                                    .attr("stroke-width", "1px")
+
+                                d3.selectAll(".bubble")
+                                    .selectAll("image")
+                                    .transition()
+                                    .duration(250)
+                                    .style("opacity", 0.7)
+
 
                                 removeBubblePopup(mouseInfo);
                             })
