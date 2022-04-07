@@ -872,7 +872,7 @@
                 })
                 .select("circle")
                 .attr("stroke", d => {
-                    return d[1].topContent.Title == title ? netflixColor : "black";
+                    return d[1].topContent.Title == title ? "url(#redGradient)" : "black";
                 })
                 .attr("stroke-width", d => {
                     return d[1].topContent.Title == title ? "8px" : "1px";
