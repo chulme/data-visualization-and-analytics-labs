@@ -8,7 +8,7 @@
 
     <style>
         body {
-            background-color: #1a1a1a;
+            background-color: #232323;
         }
 
         .axis path,
@@ -610,7 +610,7 @@
         function drawHighestRatedGraph(content, graphTitle, width, height) {
             const TITLE_VERT_OFFSET = -50;
             const X_AXIS_LABEL_HEIGHT = 300;
-            const Y_AXIS_LABEL_WIDTH = 50;
+            const Y_AXIS_LABEL_WIDTH = 70;
             var g = d3.select(".topContentBarGraph")
             g.selectAll(".widgetBack")
                 .data([graphTitle])
@@ -664,11 +664,11 @@
                 .call(d3.axisBottom(xScale))
                 .selectAll("text")
                 .attr("class", "barGraphXLabel")
-
                 .attr("x", -15)
                 .attr("y", -5)
                 .style("text-anchor", "end")
-                .style("font-size", "14px")
+                .style("font-size", "17px")
+                .text(d => (d.length > 30) ? d.slice(0, 30) + "..." : d)
 
             g.select("g #bottomAxis").selectAll("text")
                 .style("fill", "white")
@@ -678,12 +678,19 @@
                 .raise()
                 .attr("class", "axis")
                 .attr("id", "leftAxis")
-                .transition()
+            yAxis.transition()
                 .duration(1000)
                 .call(d3.axisLeft(yScale).ticks(5))
                 .selectAll("text")
                 .style("fill", "white")
                 .style("font-size", "14px")
+            yAxis.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -45)
+                .attr("x", -(height / 2))
+                .attr("text-anchor", "middle")
+                .text("IMDb Score")
+                .style("font-size", "17px")
 
             g.selectAll(".bar")
 
@@ -823,30 +830,9 @@
 
         function drawBoxOfficeSuccessGraph(content, graphTitle, width, height) {
 
-            var g = d3.select(".boxOfficeSucessGraph")
-            // g.selectAll(".title")
-            //     .data([graphTitle])
-            //     .join(
-            //         enter => {
-            //             return enter.append("text").attr("class", "title")
-            //                 .text(d => d)
-            //                 .style("fill", "white")
-            //                 .style("font-family", "Montserrat")
-            //                 .attr("transform", "translate(" + (width / 2) + "," + -20 + ")")
-            //                 .style("text-anchor", "middle")
-            //                 .style("font-size", "20px")
-            //         },
-            //         update => {
-            //             return update.text(d => d);
-            //         },
-            //         exit => {
-            //             return exit.remove();
-            //         })
-
-
             const TITLE_VERT_OFFSET = -50;
             const X_AXIS_LABEL_HEIGHT = 300;
-            const Y_AXIS_LABEL_WIDTH = 50;
+            const Y_AXIS_LABEL_WIDTH = 70;
             var g = d3.select(".boxOfficeSucessGraph")
             g.selectAll(".widgetBack")
                 .data([graphTitle])
@@ -905,26 +891,36 @@
                 .call(d3.axisBottom(xScale))
                 .selectAll("text")
                 .attr("class", "barGraphXLabel")
-
                 .attr("x", -15)
                 .attr("y", -5)
                 .style("text-anchor", "end")
-                .style("font-size", "14px")
+                .style("font-size", "17px")
+                .text(d => (d.length > 30) ? d.slice(0, 30) + "..." : d)
 
             g.select("g #bottomAxis").selectAll("text")
                 .style("fill", "white")
                 .attr("transform", "rotate(-90)")
 
-            g.select("g #leftAxis")
+            var yAxis = g.select("g #leftAxis")
                 .raise()
                 .attr("class", "axis")
                 .attr("id", "leftAxis")
-                .transition()
+            yAxis.transition()
                 .duration(1000)
                 .call(d3.axisLeft(yScale).ticks(5))
                 .selectAll("text")
                 .style("fill", "white")
                 .style("font-size", "14px")
+
+
+            yAxis.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -45)
+                .attr("x", -(height / 2))
+                .attr("text-anchor", "middle")
+                .text("Box Office Earnings ($)")
+                .style("font-size", "17px")
+
 
             g.selectAll(".bar")
                 .data(content)
@@ -1341,7 +1337,6 @@
                     drawTrendLine(content.filter(d => d.Genre.indexOf(data) > -1), g, xScale, yScale);
 
 
-
                 }).on("mouseout", (m, data) => {
                     legend.selectAll("circle,text")
                         .transition("legendExitTrans")
@@ -1375,27 +1370,28 @@
                 .attr("r", CIRCLE_RADIUS)
                 .style("fill", d => genreColorScheme(d))
 
-            g.select("g #bottomAxis")
+            var xAxis = g.select("g #bottomAxis")
                 .raise()
                 .attr("class", "axis")
                 .attr("id", "bottomAxis")
                 .attr("transform", "translate(0," + height + ")")
-                .transition("something else")
-                .duration(1000)
                 .call(d3.axisBottom(xScale))
-                .selectAll("text")
-                .attr("x", -15)
-                .attr("y", -5)
-                .style("text-anchor", "end")
-                .style("font-size", "14px")
 
-            g.select("g #bottomAxis").selectAll("text")
+            xAxis.selectAll("text")
+                .attr("y", 15)
+                .style("text-anchor", "middle")
+                .style("font-size", "14px")
                 .style("fill", "white")
-                .attr("transform", "rotate(-90)")
+
+            xAxis.append("text")
+                .attr("x", (width / 2))
+                .attr("y", 50)
+                .attr("text-anchor", "middle")
+                .text("Date")
+                .style("font-size", "17px")
 
             var yAxis = g.select("g #leftAxis")
                 .raise()
-
                 .attr("class", "axis")
                 .attr("id", "leftAxis")
             yAxis.call(d3.axisLeft(yScale).ticks(4))
@@ -1496,9 +1492,9 @@
             createDefs();
             linkCountryNaming(mapData, netflixSubscribersByCountry)
             var path = displayMap(mapData, netflixSubscribersByCountry)
-            const barGraphSize = [600, 300];
-            const graphPos = [930, 50];
-            const boxOfficeSuccessGraphPos = [1600, 50];
+            const barGraphSize = [590, 300];
+            const graphPos = [935, 50];
+            const boxOfficeSuccessGraphPos = [1610, 50];
             const lineGraphPos = [140, 700];
             const lineGraphSize = [680, 300];
             const scatterPlotPos = [1250, 700];
