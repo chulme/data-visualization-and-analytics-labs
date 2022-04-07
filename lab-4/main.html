@@ -365,7 +365,9 @@
                 .append("g")
                 .raise()
                 .attr("class", "bubblePopup")
-                .attr("transform", "translate(" + (bubbleCentroid.x + horzOffset) + "," + (bubbleCentroid.y + vertOffset) + ")")
+                // If cursor is on far right of page, move to left of cursor. Else move to right.
+                .attr("transform", "translate(" + ((bubbleCentroid.x > 1600) ? bubbleCentroid.x - popupWidth - horzOffset : bubbleCentroid.x + horzOffset)
+                    + "," + (bubbleCentroid.y + vertOffset) + ")")
 
             g.append("path")
                 .attr("d", roundedRect(0, titleBarHeight, popupWidth, 0, 6, false, false, true, true))
