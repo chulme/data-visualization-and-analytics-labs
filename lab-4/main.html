@@ -1073,7 +1073,6 @@
             const CIRCLE_RADIUS = 8;
             const LEGEND_HORZ_OFFSET = 70;
             const LEGEND_VERT_OFFSET = 170;
-
             var legend = g.append("g")
                 .attr("class", "legend")
                 .attr("transform", "translate(" + (width + LEGEND_HORZ_OFFSET) + "," + ((height / 2) - LEGEND_VERT_OFFSET) + ")");
@@ -1120,7 +1119,6 @@
                         .style("fill-opacity", 1)
                         .attr("fill", "url(#redGradient)")
                         .attr("r", 1);
-
                 })
 
 
@@ -1133,8 +1131,7 @@
                 .style("font-family", "Montserrat")
                 .text(d => d)
 
-            lg
-                .append("circle")
+            lg.append("circle")
                 .attr("cx", (d, i) => (i >= NUMBER_OF_ELEMENTS_PER_COL) ? SPACE_BETWEEN_COLS - CIRCLE_HORZ_OFFSET : -CIRCLE_HORZ_OFFSET)
                 .attr("cy", (d, i) => (i % NUMBER_OF_ELEMENTS_PER_COL) * SPACE_BETWEEN_ROWS)
                 .attr("r", CIRCLE_RADIUS)
@@ -1157,19 +1154,23 @@
                 .style("fill", "white")
                 .attr("transform", "rotate(-90)")
 
-
             var yAxis = g.select("g #leftAxis")
                 .attr("class", "axis")
                 .attr("id", "leftAxis")
-                .transition()
-                .duration(1000)
-                .call(d3.axisLeft(yScale).ticks(5))
+            yAxis.call(d3.axisLeft(yScale).ticks(4))
                 .selectAll("text")
                 .style("fill", "white")
                 .style("font-size", "14px")
 
-            g.selectAll("dot")
+            yAxis.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -40)
+                .attr("x", -(height / 2))
+                .attr("text-anchor", "middle")
+                .text("IMDb Score")
+                .style("font-size", "17px")
 
+            g.selectAll("dot")
                 .data(content)
                 .join("circle")
                 .attr("class", "scatterPlotPoint")
