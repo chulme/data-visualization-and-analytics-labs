@@ -671,7 +671,7 @@
                 .append("filter")
                 .attr("id", "blur")
                 .append("feGaussianBlur")
-                .attr("stdDeviation", 1);
+                .attr("stdDeviation", 1.5);
 
 
         }
@@ -885,7 +885,9 @@
                 .duration(250)
                 .style("opacity", d => {
                     return d[1].topContent.Title == title ? 1 : 0.7;
-
+                })
+                .attr("filter", d => {
+                    return d[1].topContent.Title == title ? null : "url(#blur)";
                 })
             d3.selectAll(".bubble").filter(d => d[1].topContent.Title == title).raise()
 
@@ -905,7 +907,7 @@
                 .transition()
                 .duration(500)
                 .style("opacity", 0.7)
-
+                .attr("filter", null)
         }
 
         function drawBoxOfficeSuccessGraph(content, graphTitle, width, height) {
