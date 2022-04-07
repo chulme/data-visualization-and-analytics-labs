@@ -1081,11 +1081,51 @@
             var legendRow = legend.selectAll(".legendRow")
                 .data(unique)
 
-            legendRow.enter()
+            var lg = legendRow.enter()
                 .append("g")
-                .append("text")
-                .attr("x", (d, i) => (i >= NUMBER_OF_ELEMENTS_PER_COL) ? SPACE_BETWEEN_COLS : 0)
+                .attr("class", "legendRow")
+                .on("mouseover", (m, data) => {
+                    legend.selectAll("circle,text") //highlight legend
+                        .transition("legendHoverTrans")
+                        .duration(1050)
+                        .style("fill-opacity", d => {
+                            return d == data ? "1" : "0.4";
+                        })
+                    d3.selectAll(".scatterPlotPoint")
+                        .transition("scatterHoverTrans")
+                        .duration(1000)
 
+                        .style("fill-opacity", d => {
+                            return d.Genre.indexOf(data) > -1 ? "1" : "0.2";
+                        })
+                        .attr("fill", d => {
+                            return d.Genre.indexOf(data) > -1 ? genreColorScheme(data) : "url(#redGradient)";
+
+                        })
+                        .attr("r", d => {
+                            return d.Genre.indexOf(data) > -1 ? 2 : 1;
+                        })
+
+
+                }).on("mouseout", (m, data) => {
+                    legend.selectAll("circle,text")
+                        .transition("legendExitTrans")
+                        .duration(250)
+                        .style("fill-opacity", 1);
+
+                    d3.selectAll(".scatterPlotPoint")
+                        .transition("scatterExitTrans")
+                        .duration(1000)
+
+                        .style("fill-opacity", 1)
+                        .attr("fill", "url(#redGradient)")
+                        .attr("r", 1);
+
+                })
+
+
+            lg.append("text")
+                .attr("x", (d, i) => (i >= NUMBER_OF_ELEMENTS_PER_COL) ? SPACE_BETWEEN_COLS : 0)
                 .attr("y", (d, i) => (i % NUMBER_OF_ELEMENTS_PER_COL) * SPACE_BETWEEN_ROWS)
                 .style("fill", "white")
                 .style("font-size", "17px")
@@ -1093,7 +1133,7 @@
                 .style("font-family", "Montserrat")
                 .text(d => d)
 
-            legendRow.enter()
+            lg
                 .append("circle")
                 .attr("cx", (d, i) => (i >= NUMBER_OF_ELEMENTS_PER_COL) ? SPACE_BETWEEN_COLS - CIRCLE_HORZ_OFFSET : -CIRCLE_HORZ_OFFSET)
                 .attr("cy", (d, i) => (i % NUMBER_OF_ELEMENTS_PER_COL) * SPACE_BETWEEN_ROWS)
@@ -1116,6 +1156,7 @@
             g.select("g #bottomAxis").selectAll("text")
                 .style("fill", "white")
                 .attr("transform", "rotate(-90)")
+
 
             var yAxis = g.select("g #leftAxis")
                 .attr("class", "axis")
