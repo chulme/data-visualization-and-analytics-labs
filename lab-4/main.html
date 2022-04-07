@@ -732,9 +732,10 @@
                             .text(d => d)
                             .attr("transform", "translate(" + ((width - Y_AXIS_LABEL_WIDTH) / 2) + "," + -25 + ")")
 
+
                     },
                     update => {
-                        return update.text(d => d);
+                        return update.select("text").text(d => d);
                     },
                     exit => {
                         return exit.remove();
@@ -985,7 +986,7 @@
 
                     },
                     update => {
-                        return update.text(d => d);
+                        return update.select("text").text(d => d);
                     },
                     exit => {
                         return exit.remove();
@@ -1116,9 +1117,13 @@
 
         function getCountryCentroidsWithTopContentEachYear(topContent, netflixShows, mapData, path) {
             var centroidDataForEachYear = new Map();
-            topContent.forEach((_, year) => {
-                centroidDataForEachYear.set(year, mapCentroidsToData(netflixShows, mapData, path, year))
-            })
+            // topContent.forEach((_, year) => {
+            //     centroidDataForEachYear.set(year, mapCentroidsToData(netflixShows, mapData, path, year))
+            // })
+
+            centroidDataForEachYear.set(2015, mapCentroidsToData(netflixShows, mapData, path, 2015))
+            centroidDataForEachYear.set(2016, mapCentroidsToData(netflixShows, mapData, path, 2016))
+
             return centroidDataForEachYear;
         }
         function getTopContent(contentData, region, number) {
@@ -1650,22 +1655,22 @@
 
             displaySubscribersByRegion(netflixSubscribersByRegion, lineGraphPos, lineGraphSize[0], lineGraphSize[1])
 
-            const year = 2019;
-            var centroids = mapCentroidsToData(netflixShows, mapData, path, year)
-            displayTopContentBubbles(centroids, netflixShows, mapData, path, year, boxOfficeExtents)
-            drawHighestRatedGraph(topContent.get(year), "Highest Rated Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
-            drawBoxOfficeSuccessGraph(topContent.get(year), "Box Office Of Top Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
+            // const year = 2019;
+            // var centroids = mapCentroidsToData(netflixShows, mapData, path, year)
+            // displayTopContentBubbles(centroids, netflixShows, mapData, path, year, boxOfficeExtents)
+            // drawHighestRatedGraph(topContent.get(year), "Highest Rated Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
+            // drawBoxOfficeSuccessGraph(topContent.get(year), "Box Office Of Top Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
 
             drawScatterPlot(netflixShows, "Content released on Netflix over time", scatterPlotSize[0], scatterPlotSize[1])
-            // centroidDataForEachYear = getCountryCentroidsWithTopContentEachYear(topContent, netflixShows, mapData, path);
-            // topContent.forEach((content, year) => {
-            //     setTimeout(function () {
-            //         displayTopContentBubbles(centroidDataForEachYear.get(year), netflixShows, mapData, path, year, boxOfficeExtents)
-            //         drawGraph(content, "Highest rated content on Netflix during " + year, width, height)
-            //         drawBudgetGraph(content, "Box Office success of top content on Netflix during " + year, width, height)
-            //     }, delay);
-            //     delay += delayBetweenYearDisplay
-            // })
+            centroidDataForEachYear = getCountryCentroidsWithTopContentEachYear(topContent, netflixShows, mapData, path);
+            topContent.forEach((content, year) => {
+                setTimeout(function () {
+                    displayTopContentBubbles(centroidDataForEachYear.get(year), netflixShows, mapData, path, year, boxOfficeExtents)
+                    drawHighestRatedGraph(content, "Highest Rated Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
+                    drawBoxOfficeSuccessGraph(content, "Box Office Of Top Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
+                }, delay);
+                delay += delayBetweenYearDisplay
+            })
 
         }).catch(function (err) {
             console.log(err)
