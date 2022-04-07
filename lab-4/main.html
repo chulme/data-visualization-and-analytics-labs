@@ -1008,17 +1008,28 @@
                 .data(content)
                 .join(
                     enter => {
-                        enter.append("rect")
+                        var rect = enter.append("rect")
                             .attr("class", "bar")
                             .attr("x", d => xScale(d["Title"]))
                             .attr("y", d => height)
                             .attr("width", xScale.bandwidth())
                             .attr("height", 0)
                             .attr("fill", "url(#redGradient)")
-                            .transition()
+                        rect.transition()
                             .duration(500)
                             .attr("height", d => height - yScale(+d["Boxoffice"]))
                             .attr("y", d => yScale(+d["Boxoffice"]))
+
+                        rect
+                            .on("mouseover", function (mouseInfo, data) {
+                                highlightContent(data.Title);
+                                displayBubblePopup(mouseInfo, data, this)
+
+                            })
+                            .on("mouseout", (mouseInfo, data) => {
+                                resetAllContent();
+                                removeBubblePopup(mouseInfo);
+                            })
                     },
                     update => {
                         update
