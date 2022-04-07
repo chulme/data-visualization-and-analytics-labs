@@ -1402,9 +1402,6 @@
                             return d == data ? "1" : "0.4";
                         })
                     d3.selectAll(".scatterPlotPoint")
-                        .transition("scatterHoverTrans")
-                        .duration(1000)
-
                         .style("fill-opacity", d => {
                             return d.Genre.indexOf(data) > -1 ? "1" : "0.2";
                         })
@@ -1426,9 +1423,6 @@
                         .style("fill-opacity", 1);
 
                     d3.selectAll(".scatterPlotPoint")
-                        .transition("scatterExitTrans")
-                        .duration(1000)
-
                         .style("fill-opacity", 1)
                         .attr("fill", netflixColor)
                         .attr("r", 1);
