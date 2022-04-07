@@ -30,6 +30,14 @@
             font-size: 25px;
             fill: #151515;
         }
+
+        .blackBorder {
+            text-shadow: -1px 1px 0 #000,
+                1px 1px 0 #000,
+                1px -1px 0 #000,
+                -1px -1px 0 #000;
+
+        }
     </style>
 </head>
 
@@ -51,6 +59,10 @@
         const darkGrey = "#221F1F"
         const HEADER_WIDTH = 35
         const WIDGET_CORNER_RADIUS = 25;
+
+        var lineGraphXScale;
+        var lineGraphYScale;
+
         function subscriberArrayToMap(netflixSubscribersByCountry) {
             var map = (d3.group(netflixSubscribersByCountry, d => d.Country));
             map.forEach((element, key) => {
@@ -264,7 +276,7 @@
                         var g = enter.append("g").attr("class", "bubble")
                             .on("mouseover", function (e, d) {
                                 displayBubblePopup(e, d, this)
-                                highlightContent(d[1].topContent.Title)
+                                highlightContent(d[1].topContent)
                             })
                             .on("mouseout", function (e, d) {
                                 removeBubblePopup();
@@ -794,7 +806,7 @@
 
                         rect
                             .on("mouseover", function (mouseInfo, data) {
-                                highlightContent(data.Title);
+                                highlightContent(data);
                                 displayBubblePopup(mouseInfo, data, this)
 
                             })
@@ -820,29 +832,54 @@
                 )
         }
 
-        function highlightContent(title) {
+        function highlightContent(content) {
             d3.selectAll(".bar")
                 .transition()
                 .duration(250)
                 .style("fill-opacity", d => {
-                    return d.Title == title ? "1" : "0.4";
+                    return d.Title == content.Title ? "1" : "0.4";
                 })
             d3.selectAll(".barGraphXLabel")
                 .transition()
                 .duration(250)
                 .style("fill-opacity", d => {
-                    return d == title ? "1" : "0.4";
+                    return d == content.Title ? "1" : "0.4";
                 })
 
             d3.selectAll(".scatterPlotPoint")
                 .style("fill-opacity", d => {
-                    return d.Title == title ? "1" : "0.2";
+                    return d.Title == content.Title ? "1" : "0.2";
                 })
                 .attr("r", d => {
-                    return d.Title == title ? 8 : 1;
+                    return d.Title == content.Title ? 8 : 1;
                 })
 
-            highlightBubbles(title);
+            highlightBubbles(content.Title);
+            drawContentReleaseLine(content)
+        }
+
+        function drawContentReleaseLine(content) {
+            var g = d3.select(".lineGraph")
+                .append("g")
+                .attr("class", "selectedContentLine")
+                .data([content])
+
+            g.append("line")
+                .attr("x1", lineGraphXScale(new Date(content["Netflix Release Date"])))
+                .attr("y1", 0)
+                .attr("x2", lineGraphXScale(new Date(content["Netflix Release Date"])))
+                .attr("y2", 300)
+                .style("stroke-dasharray", ("10, 10"))
+                .attr("stroke-width", 2)
+
+            g.append("text")
+                .text(d => content.Title)
+                .attr("x", lineGraphXScale(new Date(content["Netflix Release Date"])) + 10)
+                .attr("class", "blackBorder")
+                .style("fill", "white")
+                .style("font-size", "17px")
+                .style("alignment-baseline", "central")
+                .style("font-family", "Montserrat")
 
         }
 
@@ -862,6 +899,8 @@
                 .attr("r", 1);
 
             resetBubbles();
+
+            d3.selectAll(".selectedContentLine").transition().duration(500).style("opacity", 0).remove();
 
         }
 
@@ -1024,7 +1063,7 @@
 
                         rect
                             .on("mouseover", function (mouseInfo, data) {
-                                highlightContent(data.Title);
+                                highlightContent(data);
                                 displayBubblePopup(mouseInfo, data, this)
 
                             })
@@ -1167,8 +1206,8 @@
             const lastQuarterDate = fiscalQuarterToDate(quarterLabels[quarterLabels.length - 1]);
             var now = new Date(firstQuarterDate);
 
-            var xScale = d3.scaleTime().range([0, width]).domain([startingDate, firstQuarterDate])
-            var yScale = d3.scaleLinear().range([0, height]).domain([subscriberExtents[1], 0]);
+            lineGraphXScale = d3.scaleTime().range([0, width]).domain([startingDate, firstQuarterDate])
+            lineGraphYScale = d3.scaleLinear().range([0, height]).domain([subscriberExtents[1], 0]);
 
             var g = d3.select("svg").append("g")
                 .attr("class", "lineGraph")
@@ -1204,7 +1243,7 @@
                 .attr("class", "axis")
                 .attr("id", "bottomAxis")
                 .attr("transform", "translate(0," + height + ")")
-                .call(xScale.axis = d3.axisBottom(xScale).ticks(numberOfHorzTicks))
+                .call(lineGraphXScale.axis = d3.axisBottom(lineGraphXScale).ticks(numberOfHorzTicks))
                 .style("font-size", "14px")
 
             xAxis.append("text")
@@ -1217,7 +1256,7 @@
             var yAxis = g.append("g")
                 .attr("class", "axis")
                 .attr("id", "leftAxis")
-                .call(d3.axisLeft(yScale))
+                .call(d3.axisLeft(lineGraphYScale))
 
             yAxis.selectAll("text")
                 .style("fill", "white")
@@ -1305,7 +1344,7 @@
                         }
                         localData.set(key, tempArr);
 
-                        xScale.domain([startingDate, newDataPoint.date]);
+                        lineGraphXScale.domain([startingDate, newDataPoint.date]);
 
                         // Redraw the line
                         d3.select("#line" + key.replace(/[^a-zA-Z0-9]/g, '')) // Remove special characters (including spaces). Not valid for HTML ID.
@@ -1315,17 +1354,26 @@
                             .attr('d', d3.line()
                                 .curve(d3.curveBasis)
                                 .x(function (d, i) {
-                                    var x = xScale(d.date);
+                                    var x = lineGraphXScale(d.date);
                                     return x;
                                 })
                                 .y(function (d, i) {
-                                    var y = yScale(d.numberOfSubscribers);
+                                    var y = lineGraphYScale(d.numberOfSubscribers);
                                     return y;
                                 }))
                             .attr('transform', null);
                     })
+
+                    d3.select(".selectedContentLine").select("line")
+                        .transition().ease(d3.easeLinear).duration(duration)
+                        .attr("x1", d => lineGraphXScale(new Date(d["Netflix Release Date"])))
+                        .attr("x2", d => lineGraphXScale(new Date(d["Netflix Release Date"])))
+                    d3.select(".selectedContentLine").select("text")
+                        .transition().ease(d3.easeLinear).duration(duration)
+                        .attr("x", d => lineGraphXScale(new Date(d["Netflix Release Date"])) + 10)
+
                     // Slide x axis to the  left
-                    xAxis.transition().ease(d3.easeLinear).duration(duration).call(xScale.axis.ticks(numberOfHorzTicks))
+                    xAxis.transition().ease(d3.easeLinear).duration(duration).call(lineGraphXScale.axis.ticks(numberOfHorzTicks))
 
 
                     tickCounter++;
