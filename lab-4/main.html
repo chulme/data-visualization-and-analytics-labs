@@ -1022,6 +1022,124 @@
 
 
         }
+        function drawScatterPlot(content, graphTitle, width, height) {
+
+            var g = d3.select(".boxOfficeTimeScatterPlot")
+            g.selectAll(".title")
+                .data([graphTitle])
+                .join(
+                    enter => {
+                        return enter.append("text").attr("class", "title")
+                            .text(d => d)
+                            .style("fill", "white")
+                            .style("font-family", "Montserrat")
+                            .attr("transform", "translate(" + (width / 2) + "," + -20 + ")")
+                            .style("text-anchor", "middle")
+                            .style("font-size", "20px")
+                    },
+                    update => {
+                        return update.text(d => d);
+                    },
+                    exit => {
+                        return exit.remove();
+                    })
+
+            content = d3.filter(content, d => d["IMDb Score"] != "");
+            content = d3.filter(content, d => d["Genre"] != "");
+
+            const scoreExtents = d3.extent(content, d => +d["IMDb Score"])
+            const releaseDateExtents = d3.extent(content, d => new Date(d["Netflix Release Date"]));
+
+            var xScale = d3.scaleTime().range([0, width]).domain(releaseDateExtents);
+            var yScale = d3.scaleLinear().range([0, height]).domain([scoreExtents[1], 1])
+
+            //Get genre as array.
+            var contentGenres = new Array;
+            content.forEach(c => {
+                contentGenres.push(c["Genre"].split(', '));
+                c["Genre"] = c["Genre"].split(", ");
+            })
+
+            //Convert array of arrays to single array
+            const merged = [].concat.apply([], contentGenres);
+            //Get unique values from merged, and remove null genre.
+            const unique = Array.from(new Set(merged))
+
+            const genreColorScheme = d3.scaleOrdinal().domain(unique).range(d3.schemeSet1)
+            const SPACE_BETWEEN_ROWS = 25;
+            const SPACE_BETWEEN_COLS = 150;
+            const NUMBER_OF_ELEMENTS_PER_COL = 14;
+            const CIRCLE_HORZ_OFFSET = 15;
+            const CIRCLE_RADIUS = 8;
+            const LEGEND_HORZ_OFFSET = 70;
+            const LEGEND_VERT_OFFSET = 170;
+
+            var legend = g.append("g")
+                .attr("class", "legend")
+                .attr("transform", "translate(" + (width + LEGEND_HORZ_OFFSET) + "," + ((height / 2) - LEGEND_VERT_OFFSET) + ")");
+
+            var legendRow = legend.selectAll(".legendRow")
+                .data(unique)
+
+            legendRow.enter()
+                .append("g")
+                .append("text")
+                .attr("x", (d, i) => (i >= NUMBER_OF_ELEMENTS_PER_COL) ? SPACE_BETWEEN_COLS : 0)
+
+                .attr("y", (d, i) => (i % NUMBER_OF_ELEMENTS_PER_COL) * SPACE_BETWEEN_ROWS)
+                .style("fill", "white")
+                .style("font-size", "17px")
+                .style("alignment-baseline", "central")
+                .style("font-family", "Montserrat")
+                .text(d => d)
+
+            legendRow.enter()
+                .append("circle")
+                .attr("cx", (d, i) => (i >= NUMBER_OF_ELEMENTS_PER_COL) ? SPACE_BETWEEN_COLS - CIRCLE_HORZ_OFFSET : -CIRCLE_HORZ_OFFSET)
+                .attr("cy", (d, i) => (i % NUMBER_OF_ELEMENTS_PER_COL) * SPACE_BETWEEN_ROWS)
+                .attr("r", CIRCLE_RADIUS)
+                .style("fill", d => genreColorScheme(d))
+
+            g.select("g #bottomAxis")
+                .attr("class", "axis")
+                .attr("id", "bottomAxis")
+                .attr("transform", "translate(0," + height + ")")
+                .transition("something else")
+                .duration(1000)
+                .call(d3.axisBottom(xScale))
+                .selectAll("text")
+                .attr("x", -15)
+                .attr("y", -5)
+                .style("text-anchor", "end")
+                .style("font-size", "14px")
+
+            g.select("g #bottomAxis").selectAll("text")
+                .style("fill", "white")
+                .attr("transform", "rotate(-90)")
+
+            var yAxis = g.select("g #leftAxis")
+                .attr("class", "axis")
+                .attr("id", "leftAxis")
+                .transition()
+                .duration(1000)
+                .call(d3.axisLeft(yScale).ticks(5))
+                .selectAll("text")
+                .style("fill", "white")
+                .style("font-size", "14px")
+
+            g.selectAll("dot")
+
+                .data(content)
+                .join("circle")
+                .attr("class", "scatterPlotPoint")
+                .attr("cx", d => xScale(new Date(d["Netflix Release Date"])))
+                .attr("cy", d => yScale(+d["IMDb Score"]))
+                .attr("r", 1)
+                .attr("fill", "url(#redGradient)")
+
+
+        }
+
         Promise.all([
             d3.csv("data/NetflixSubscribersbyCountryfrom2018toQ2_2020.csv"),
             d3.csv("data/NetflixSubscribersbyCountry.csv"),
@@ -1047,12 +1165,15 @@
             const graphPos = [900, 50];
             const boxOfficeSuccessGraphPos = [1500, 50];
             const lineGraphPos = [150, 700];
-            const lineGraphSize = [500, 300]
+            const lineGraphSize = [500, 300];
+            const scatterPlotPos = [1200, 700];
+            const scatterPlotSize = [500, 300];
             const periodBetweenGraphs = 1000;
 
 
             initGraph(graphPos, "topContentBarGraph")
             initGraph(boxOfficeSuccessGraphPos, "boxOfficeSucessGraph")
+            initGraph(scatterPlotPos, "boxOfficeTimeScatterPlot")
             var topContent = getTopContent(netflixShows, null, 10);
 
             const boxOfficeExtents = d3.extent(netflixShows, d => +d["Boxoffice"].replace(/[^\w\s]/gi, ''))
@@ -1061,12 +1182,13 @@
 
             displaySubscribersByRegion(netflixSubscribersByRegion, lineGraphPos, lineGraphSize[0], lineGraphSize[1])
 
-            // const year = 2019;
-            // var centroids = mapCentroidsToData(netflixShows, mapData, path, year)
-            // displayTopContentBubbles(centroids, netflixShows, mapData, path, year, boxOfficeExtents)
-            // drawHighestRatedGraph(topContent.get(year), "Highest rated content on Netflix during " + year, barGraphSize[0], barGraphSize[1])
-            // drawBoxOfficeSuccessGraph(topContent.get(year), "Box Office success of top content on Netflix during " + year, barGraphSize[0], barGraphSize[1])
+            const year = 2019;
+            var centroids = mapCentroidsToData(netflixShows, mapData, path, year)
+            displayTopContentBubbles(centroids, netflixShows, mapData, path, year, boxOfficeExtents)
+            drawHighestRatedGraph(topContent.get(year), "Highest rated content on Netflix during " + year, barGraphSize[0], barGraphSize[1])
+            drawBoxOfficeSuccessGraph(topContent.get(year), "Box Office success of top content on Netflix during " + year, barGraphSize[0], barGraphSize[1])
 
+            drawScatterPlot(netflixShows, "Content released on Netflix over time", scatterPlotSize[0], scatterPlotSize[1])
             // centroidDataForEachYear = getCountryCentroidsWithTopContentEachYear(topContent, netflixShows, mapData, path);
             // topContent.forEach((content, year) => {
             //     setTimeout(function () {
