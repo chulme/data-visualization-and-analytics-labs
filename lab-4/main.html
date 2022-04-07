@@ -252,6 +252,8 @@
 
 
             var bubbles = d3.select("svg")
+                .append("g")
+                .attr("class", "bubbles")
                 .selectAll(".bubble")
                 .data(countryCentroids, d => {
                     return d[0]
@@ -362,6 +364,7 @@
             var movieData = (elementClass == "bubble") ? d[1].topContent : d;
             var g = d3.select("svg")
                 .append("g")
+                .raise()
                 .attr("class", "bubblePopup")
                 .attr("transform", "translate(" + (bubbleCentroid.x + horzOffset) + "," + (bubbleCentroid.y + vertOffset) + ")")
 
