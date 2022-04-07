@@ -264,8 +264,6 @@
 
 
             var bubbles = d3.select("svg")
-                .append("g")
-                .attr("class", "bubbles")
                 .selectAll(".bubble")
                 .data(countryCentroids, d => {
                     return d[0]
@@ -924,7 +922,6 @@
                 .attr("filter", d => {
                     return d[1].topContent.Title == title ? null : "url(#blur)";
                 })
-            d3.selectAll(".bubble").filter(d => d[1].topContent.Title == title).raise()
 
         }
 
