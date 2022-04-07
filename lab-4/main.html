@@ -342,12 +342,12 @@
 
 
         function displayBubblePopup(e, d, thisElement = this) {
-            const popupWidth = 460, popupHeight = 150;
+            const popupWidth = 460, popupHeight = 270;
             const titleBarHeight = 30;
-            const horzOffset = 100, vertOffset = -15;
+            const horzOffset = 100, vertOffset = -60;
             const titleOffset = 13;
             const infoOffset = 42;
-            const newLineOffset = 25;
+            const newLineOffset = 22;
 
             const titleTextDelay = 50;
             const infoTextDelay = 350;
@@ -381,7 +381,7 @@
                 .transition()
                 .duration(bubbleDuration)
                 .attr("d", roundedRect(0, 0, popupWidth, titleBarHeight, 6, true, true, false, false))
-                .style("fill", "url(#redGradient)")
+                .style("fill", "url(#redTitleGradient)")
 
             g.append("text")
                 .attr("class", "popupTitle")
@@ -418,7 +418,6 @@
 
 
             info.append("text")
-                .attr("class", "boxOffice")
                 .attr("x", (popupWidth / 2))
                 .attr("y", newLineOffset)
                 .style("font-family", "Montserrat")
@@ -439,6 +438,87 @@
                 .style("text-anchor", "middle")
                 .style("alignment-baseline", "central")
                 .style("font-size", "0px")
+                .text("Genre(s):")
+                .transition()
+                .duration(textDuration)
+                .delay(infoTextDelay)
+                .style("font-size", infoFontSize)
+
+            info.append("text")
+                .attr("x", (popupWidth / 2))
+                .attr("y", newLineOffset * 3)
+                .style("font-family", "Montserrat")
+                .style("text-anchor", "middle")
+                .style("alignment-baseline", "central")
+                .style("font-size", "0px")
+                .style("font-weight", "bold")
+                .text(movieData["Genre"])
+                .transition()
+                .duration(textDuration)
+                .delay(infoTextDelay)
+                .style("font-size", infoFontSize)
+
+            info.append("text")
+                .attr("x", (popupWidth / 2))
+                .attr("y", newLineOffset * 4)
+                .style("font-family", "Montserrat")
+                .style("text-anchor", "middle")
+                .style("alignment-baseline", "central")
+                .style("font-size", "0px")
+                .text("Release Date (Initial / Netflix):")
+                .transition()
+                .duration(textDuration)
+                .delay(infoTextDelay)
+                .style("font-size", infoFontSize)
+
+            info.append("text")
+                .attr("x", (popupWidth / 2))
+                .attr("y", newLineOffset * 5)
+                .style("font-family", "Montserrat")
+                .style("text-anchor", "middle")
+                .style("alignment-baseline", "central")
+                .style("font-size", "0px")
+                .style("font-weight", "bold")
+                .text(new Date(movieData["Release Date"]).toISOString().split('T')[0] + " / " + new Date(movieData["Netflix Release Date"]).toISOString().split('T')[0])
+                .transition()
+                .duration(textDuration)
+                .delay(infoTextDelay)
+                .style("font-size", infoFontSize)
+
+            info.append("text")
+                .attr("x", (popupWidth / 2))
+                .attr("y", newLineOffset * 6)
+                .style("font-family", "Montserrat")
+                .style("text-anchor", "middle")
+                .style("alignment-baseline", "central")
+                .style("font-size", "0px")
+                .text("IMDb Score:")
+                .transition()
+                .duration(textDuration)
+                .delay(infoTextDelay)
+                .style("font-size", infoFontSize)
+
+            info.append("text")
+                .attr("x", (popupWidth / 2))
+                .attr("y", newLineOffset * 7)
+                .style("font-family", "Montserrat")
+                .style("text-anchor", "middle")
+                .style("alignment-baseline", "central")
+                .style("font-size", "0px")
+                .style("font-weight", "bold")
+                .text(+movieData["IMDb Score"])
+                .transition()
+                .duration(textDuration)
+                .delay(infoTextDelay)
+                .style("font-size", infoFontSize)
+
+            info.append("text")
+                .attr("x", (popupWidth / 2))
+                .attr("y", newLineOffset * 8)
+                .style("font-family", "Montserrat")
+                .style("text-anchor", "middle")
+                .style("alignment-baseline", "central")
+                .style("font-size", "0px")
                 .text("Box office revenue:")
                 .transition()
                 .duration(textDuration)
@@ -446,9 +526,8 @@
                 .style("font-size", infoFontSize)
 
             info.append("text")
-                .attr("class", "boxOffice")
                 .attr("x", (popupWidth / 2))
-                .attr("y", newLineOffset * 3)
+                .attr("y", newLineOffset * 9)
                 .style("font-family", "Montserrat")
                 .style("text-anchor", "middle")
                 .style("alignment-baseline", "central")
@@ -462,7 +541,7 @@
 
             info.append("text")
                 .attr("x", (popupWidth / 2))
-                .attr("y", newLineOffset * 4)
+                .attr("y", newLineOffset * 10)
                 .style("font-family", "Montserrat")
                 .style("text-anchor", "middle")
                 .style("alignment-baseline", "central")
@@ -474,9 +553,8 @@
                 .style("font-size", infoFontSize)
 
             info.append("text")
-                .attr("class", "boxOffice")
                 .attr("x", (popupWidth / 2))
-                .attr("y", newLineOffset * 5)
+                .attr("y", newLineOffset * 11)
                 .style("font-family", "Montserrat")
                 .style("text-anchor", "middle")
                 .style("alignment-baseline", "central")
