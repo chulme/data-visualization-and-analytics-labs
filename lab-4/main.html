@@ -313,7 +313,6 @@
 
 
             const bubbleCentroid = { x: d3.pointer(e)[0], y: d3.pointer(e)[1] }
-            console.log(bubbleCentroid, d3.pointer(e));
             var movieData = (elementClass == "bubble") ? d[1].topContent : d;
             var g = d3.select("svg")
                 .append("g")
@@ -584,6 +583,8 @@
                 .duration(1000)
                 .call(d3.axisBottom(xScale))
                 .selectAll("text")
+                .attr("class", "barGraphXLabel")
+
                 .attr("x", -15)
                 .attr("y", -5)
                 .style("text-anchor", "end")
@@ -629,7 +630,26 @@
                                     .style("fill-opacity", d => {
                                         return d.Title == data.Title ? "1" : "0.4";
                                     })
-                                console.log("d3event", d3.event);
+                                d3.selectAll(".barGraphXLabel")
+                                    .transition()
+                                    .duration(250)
+                                    .style("fill-opacity", d => {
+                                        return d == data.Title ? "1" : "0.4";
+                                    })
+
+                                d3.selectAll(".scatterPlotPoint")
+                                    .transition("scatterHoverTrans")
+                                    .duration(1000)
+
+                                    .style("fill-opacity", d => {
+                                        return d.Title == data.Title ? "1" : "0.2";
+                                    })
+
+                                    .attr("r", d => {
+                                        return d.Title == data.Title ? 8 : 1;
+                                    })
+
+
                                 displayBubblePopup(mouseInfo, data, this)
 
                             })
@@ -638,6 +658,19 @@
                                     .transition()
                                     .duration(250)
                                     .style("fill-opacity", 1);
+
+                                d3.selectAll(".barGraphXLabel")
+                                    .transition()
+                                    .duration(250)
+                                    .style("fill-opacity", 1)
+                                d3.selectAll(".scatterPlotPoint")
+                                    .transition("scatterExitTrans")
+                                    .duration(1000)
+
+                                    .style("fill-opacity", 1)
+                                    .attr("fill", netflixColor)
+                                    .attr("r", 1);
+
                                 removeBubblePopup(mouseInfo);
                             })
 
