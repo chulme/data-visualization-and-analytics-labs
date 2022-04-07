@@ -788,6 +788,8 @@
                 .duration(1000)
                 .call(d3.axisBottom(xScale))
                 .selectAll("text")
+                .attr("class", "barGraphXLabel")
+
                 .attr("x", -15)
                 .attr("y", -5)
                 .style("text-anchor", "end")
