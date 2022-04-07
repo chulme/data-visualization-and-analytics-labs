@@ -359,8 +359,7 @@
             const infoFontSize = "17px";
             const elementClass = d3.select(thisElement).attr("class");
 
-
-            const bubbleCentroid = { x: d3.pointer(e)[0], y: d3.pointer(e)[1] }
+            const bubbleCentroid = { x: d3.pointer(e, d3.select("svg"))[0], y: d3.pointer(e, d3.select("svg"))[1] } //need to pass svg as target to mouse event due to transformed rects.
             var movieData = (elementClass == "bubble") ? d[1].topContent : d;
             var g = d3.select("svg")
                 .append("g")
