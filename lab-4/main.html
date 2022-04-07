@@ -779,13 +779,6 @@
                 .selectAll("text")
                 .style("fill", "white")
                 .style("font-size", "14px")
-            yAxis.append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", -45)
-                .attr("x", -(height / 2))
-                .attr("text-anchor", "middle")
-                .text("IMDb Score")
-                .style("font-size", "17px")
 
             g.selectAll(".bar")
 
@@ -1029,21 +1022,14 @@
                 .raise()
                 .attr("class", "axis")
                 .attr("id", "leftAxis")
+
+
             yAxis.transition()
                 .duration(1000)
                 .call(d3.axisLeft(yScale).ticks(5))
                 .selectAll("text")
                 .style("fill", "white")
                 .style("font-size", "14px")
-
-
-            yAxis.append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", -45)
-                .attr("x", -(height / 2))
-                .attr("text-anchor", "middle")
-                .text("Box Office Earnings ($)")
-                .style("font-size", "17px")
 
 
             g.selectAll(".bar")
