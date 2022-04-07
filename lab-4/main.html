@@ -221,8 +221,15 @@
                     enter => {
 
                         var g = enter.append("g").attr("class", "bubble")
-                            .on("mouseover", displayBubblePopup)
-                            .on("mouseout", removeBubblePopup)
+                            .on("mouseover", function (e, d) {
+                                displayBubblePopup(e, d, this)
+                                highlightContent(d[1].topContent.Title)
+                            })
+                            .on("mouseout", function (e, d) {
+                                removeBubblePopup();
+                                resetAllContent();
+
+                            })
                         g.append("circle")
                             .attr("cx", d => {
                                 return (d[1].centroid.x + radiusScale(+d[1]["topContent"]["Boxoffice"].replace(/[^\w\s]/gi, '')))
@@ -462,7 +469,7 @@
             retval += "z";
             return retval;
         }
-        function removeBubblePopup(e, d) {
+        function removeBubblePopup() {
             d3.selectAll(".bubblePopup")
                 .transition()
                 .duration(150)
@@ -623,89 +630,12 @@
 
                         rect
                             .on("mouseover", function (mouseInfo, data) {
-                                d3.selectAll(".bar")
-                                    .transition()
-                                    .duration(250)
-                                    .style("fill-opacity", d => {
-                                        return d.Title == data.Title ? "1" : "0.4";
-                                    })
-                                d3.selectAll(".barGraphXLabel")
-                                    .transition()
-                                    .duration(250)
-                                    .style("fill-opacity", d => {
-                                        return d == data.Title ? "1" : "0.4";
-                                    })
-
-                                d3.selectAll(".scatterPlotPoint")
-                                    .transition("scatterHoverTrans")
-                                    .duration(1000)
-                                    .style("fill-opacity", d => {
-                                        return d.Title == data.Title ? "1" : "0.2";
-                                    })
-                                    .attr("r", d => {
-                                        return d.Title == data.Title ? 8 : 1;
-                                    })
-
-                                d3.selectAll(".bubble")
-                                    .transition()
-                                    .duration(250)
-                                    .attr("opacity", d => {
-                                        return d[1].topContent.Title == data.Title ? 1 : 0.6;
-                                    })
-                                    .select("circle")
-                                    .attr("stroke", d => {
-                                        return d[1].topContent.Title == data.Title ? netflixColor : "black";
-                                    })
-                                    .attr("stroke-width", d => {
-                                        return d[1].topContent.Title == data.Title ? "8px" : "1px";
-
-                                    })
-
-                                d3.selectAll(".bubble")
-                                    .selectAll("image")
-                                    .transition()
-                                    .duration(250)
-                                    .style("opacity", d => {
-                                        return d[1].topContent.Title == data.Title ? 1 : 0.7;
-
-                                    })
-                                d3.selectAll(".bubble").filter(d => d[1].topContent.Title == data.Title).raise()
-
+                                highlightContent(data.Title);
                                 displayBubblePopup(mouseInfo, data, this)
 
                             })
                             .on("mouseout", (mouseInfo, data) => {
-                                d3.selectAll(".bar")
-                                    .transition()
-                                    .duration(250)
-                                    .style("fill-opacity", 1);
-
-                                d3.selectAll(".barGraphXLabel")
-                                    .transition()
-                                    .duration(250)
-                                    .style("fill-opacity", 1)
-                                d3.selectAll(".scatterPlotPoint")
-                                    .transition("scatterExitTrans")
-                                    .duration(1000)
-                                    .style("fill-opacity", 1)
-                                    .attr("fill", netflixColor)
-                                    .attr("r", 1);
-
-                                d3.selectAll(".bubble")
-                                    .transition()
-                                    .duration(250)
-                                    .attr("opacity", 1)
-                                    .select("circle")
-                                    .attr("stroke", "black")
-                                    .attr("stroke-width", "1px")
-
-                                d3.selectAll(".bubble")
-                                    .selectAll("image")
-                                    .transition()
-                                    .duration(250)
-                                    .style("opacity", 0.7)
-
-
+                                resetAllContent();
                                 removeBubblePopup(mouseInfo);
                             })
 
@@ -724,6 +654,96 @@
                             .remove();
                     }
                 )
+        }
+
+        function highlightContent(title) {
+            d3.selectAll(".bar")
+                .transition()
+                .duration(250)
+                .style("fill-opacity", d => {
+                    return d.Title == title ? "1" : "0.4";
+                })
+            d3.selectAll(".barGraphXLabel")
+                .transition()
+                .duration(250)
+                .style("fill-opacity", d => {
+                    return d == title ? "1" : "0.4";
+                })
+
+            d3.selectAll(".scatterPlotPoint")
+                .style("fill-opacity", d => {
+                    return d.Title == title ? "1" : "0.2";
+                })
+                .attr("r", d => {
+                    return d.Title == title ? 8 : 1;
+                })
+
+            highlightBubbles(title);
+
+        }
+
+        function resetAllContent() {
+            d3.selectAll(".bar")
+                .transition()
+                .duration(250)
+                .style("fill-opacity", 1);
+
+            d3.selectAll(".barGraphXLabel")
+                .transition()
+                .duration(250)
+                .style("fill-opacity", 1)
+            d3.selectAll(".scatterPlotPoint")
+                .style("fill-opacity", 1)
+                .attr("fill", netflixColor)
+                .attr("r", 1);
+
+            resetBubbles();
+
+        }
+
+        function highlightBubbles(title) {
+            d3.selectAll(".bubble")
+                .transition()
+                .duration(250)
+                .attr("opacity", d => {
+                    return d[1].topContent.Title == title ? 1 : 0.6;
+                })
+                .select("circle")
+                .attr("stroke", d => {
+                    return d[1].topContent.Title == title ? netflixColor : "black";
+                })
+                .attr("stroke-width", d => {
+                    return d[1].topContent.Title == title ? "8px" : "1px";
+
+                })
+
+            d3.selectAll(".bubble")
+                .selectAll("image")
+                .transition()
+                .duration(250)
+                .style("opacity", d => {
+                    return d[1].topContent.Title == title ? 1 : 0.7;
+
+                })
+            d3.selectAll(".bubble").filter(d => d[1].topContent.Title == title).raise()
+
+        }
+
+        function resetBubbles() {
+            d3.selectAll(".bubble")
+                .transition()
+                .duration(500)
+                .attr("opacity", 1)
+                .select("circle")
+                .attr("stroke", "black")
+                .attr("stroke-width", "1px")
+
+            d3.selectAll(".bubble")
+                .selectAll("image")
+                .transition()
+                .duration(500)
+                .style("opacity", 0.7)
+
         }
 
         function drawBoxOfficeSuccessGraph(content, graphTitle, width, height) {
@@ -1134,7 +1154,6 @@
             const merged = [].concat.apply([], contentGenres);
             //Get unique values from merged, and remove null genre.
             const unique = Array.from(new Set(merged))
-
             const genreColorScheme = d3.scaleOrdinal().domain(unique).range(d3.schemeSet1)
             const SPACE_BETWEEN_ROWS = 25;
             const SPACE_BETWEEN_COLS = 150;
