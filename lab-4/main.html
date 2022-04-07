@@ -1100,12 +1100,15 @@
                             return d.Genre.indexOf(data) > -1 ? "1" : "0.2";
                         })
                         .attr("fill", d => {
-                            return d.Genre.indexOf(data) > -1 ? genreColorScheme(data) : "url(#redGradient)";
+                            return d.Genre.indexOf(data) > -1 ? genreColorScheme(data) : netflixColor;
 
                         })
                         .attr("r", d => {
                             return d.Genre.indexOf(data) > -1 ? 2 : 1;
                         })
+
+                    drawTrendLine(content.filter(d => d.Genre.indexOf(data) > -1), g, xScale, yScale);
+
 
 
                 }).on("mouseout", (m, data) => {
@@ -1119,8 +1122,10 @@
                         .duration(1000)
 
                         .style("fill-opacity", 1)
-                        .attr("fill", "url(#redGradient)")
+                        .attr("fill", netflixColor)
                         .attr("r", 1);
+                    drawTrendLine(content, g, xScale, yScale);
+
                 })
 
 
@@ -1172,15 +1177,22 @@
                 .text("IMDb Score")
                 .style("font-size", "17px")
 
-            g.selectAll("dot")
+            g.append("g")
+                .attr("class", "dots")
+                .selectAll("dot")
                 .data(content)
                 .join("circle")
                 .attr("class", "scatterPlotPoint")
                 .attr("cx", d => xScale(new Date(d["Netflix Release Date"])))
                 .attr("cy", d => yScale(+d["IMDb Score"]))
                 .attr("r", 1)
-                .attr("fill", "url(#redGradient)")
+                .attr("fill", netflixColor)
 
+
+            drawTrendLine(content, g, xScale, yScale);
+        }
+
+        function drawTrendLine(content, g, xScale, yScale) {
             // Best Fit Line, based on https://stackoverflow.com/questions/57559499/plotting-a-trendline-with-d3-actual-forecast
             var regression = ss.linearRegression(content.map(d => {
 
@@ -1197,23 +1209,36 @@
                     score: lin(+x)
                 }
             })
-            console.log(lindata);
-            g.append("path")
-                .datum(lindata)
-                .style("stroke-dasharray", ("20, 20"))
-                .attr("stroke", "white")
-                .attr("stroke-width", 2)
-                .attr("d", d => {
-                    return d3.line()
-                        .x(function (d) {
-                            return xScale(d.releaseDate);
-                        })
-                        .y(function (d) {
-                            return yScale(d.score);
-                        })
-                        (d);
-                });
+            var line = d3.line()
+                .x(function (d, i) {
+                    return xScale(d.releaseDate);
+                })
+                .y(function (d) {
+                    return yScale(d.score);
+                })
 
+            var trendlines = g.selectAll(".trendline")
+                .data([lindata])
+                .join(
+                    function (enter) {
+                        return enter.append("path")
+                            .attr("class", "trendline")
+                            .style("stroke-dasharray", ("20, 20"))
+                            .attr("stroke", "white")
+                            .attr("stroke-width", 2)
+                            .attr("d", line)
+                    },
+                    function (update) {
+                        return update
+                            .transition()
+                            .duration(1000)
+                            .attr("d", line)
+                    },
+                    function (exit) {
+                        return exit.remove();
+                    }
+
+                );
         }
 
         Promise.all([
