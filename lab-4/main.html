@@ -24,6 +24,8 @@
 
 <body>
     <script src='https://d3js.org/d3.v7.js'></script>
+    <script src='https://unpkg.com/simple-statistics@7.7.5/dist/simple-statistics.min.js'></script>
+
     <script>
 
         const defaultMapColor = "#373737"
@@ -1179,6 +1181,38 @@
                 .attr("r", 1)
                 .attr("fill", "url(#redGradient)")
 
+            // Best Fit Line, based on https://stackoverflow.com/questions/57559499/plotting-a-trendline-with-d3-actual-forecast
+            var regression = ss.linearRegression(content.map(d => {
+
+                var date = +(new Date(d["Netflix Release Date"]));
+                var score = +d["IMDb Score"];
+
+                return [date, score]
+            }))
+
+            var lin = ss.linearRegressionLine(regression)
+            var lindata = xScale.domain().map(x => {
+                return {
+                    releaseDate: (x),
+                    score: lin(+x)
+                }
+            })
+            console.log(lindata);
+            g.append("path")
+                .datum(lindata)
+                .style("stroke-dasharray", ("20, 20"))
+                .attr("stroke", "white")
+                .attr("stroke-width", 2)
+                .attr("d", d => {
+                    return d3.line()
+                        .x(function (d) {
+                            return xScale(d.releaseDate);
+                        })
+                        .y(function (d) {
+                            return yScale(d.score);
+                        })
+                        (d);
+                });
 
         }
 
