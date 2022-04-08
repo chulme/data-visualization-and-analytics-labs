@@ -1883,13 +1883,11 @@
             d3.csv("data/NetflixSubscribersbyCountryfrom2018toQ2_2020.csv"),
             d3.csv("data/NetflixSubscribersbyCountry.csv"),
             d3.csv("data/netflix-rotten-tomatoes-metacritic-imdb.csv"),
-            //d3.csv("data/movie_metadata.csv"),
             d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson"),
         ]).then(function (files) {
             const netflixSubscribersByCountry = files[1]
             const netflixSubscribersByRegion = files[0]
             const netflixShows = files[2]
-            //const movieData = files[2]
             const mapData = files[3]
 
             // Append SVG Object to the page
