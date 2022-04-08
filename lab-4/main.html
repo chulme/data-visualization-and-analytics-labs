@@ -44,8 +44,103 @@
 <body>
     <script src='https://d3js.org/d3.v7.js'></script>
     <script src='https://unpkg.com/simple-statistics@7.7.5/dist/simple-statistics.min.js'></script>
+    <script type="text/javascript" src="jsonfn.js"></script>
 
+    <script id="worker" type="javascript/worker">
+    window = self; // jsonfn uses "window"
+    importScripts("https://cdn.jsdelivr.net/gh/vkiryukhin/jsonfn/jsonfn.js");
+    importScripts("https://d3js.org/d3.v7.js");
+
+        self.onmessage = (message) =>{
+           
+            var content = message.data.content;     
+            var mapData = message.data.mapData;
+            var path = JSONfn.parse(message.data.path);
+            var year = message.data.year;
+            var countryCentroids = mapCentroidsToData(content, mapData, year)
+            self.postMessage(countryCentroids)
+
+        }
+         function mapCentroidsToData(content, mapData, year) {
+            console.log("Doing the big filter")
+
+            const X_SIZE = 850;
+            const Y_SIZE = 600;
+            const X_MARGIN = 50;
+            const Y_MARGIN = 50;
+
+            const X_MAX = X_SIZE - (X_MARGIN * 2);
+            const Y_MAX = Y_SIZE - (Y_MARGIN * 2);
+            const MAP_VERT_OFFSET = 30;
+            const TITLE_VERT_OFFSET = 25;
+            const projection = d3.geoMercator()
+                .scale(160)
+                .center([0, 60])
+                .translate([X_MAX / 2, 200]);
+            const path = d3.geoPath(projection);
+
+
+            //Create country centroids
+            var countryCentroids = new Map(d3.filter((mapData.features.map(d => {
+                const centroid = path.centroid(d.geometry);
+                const topContentForCountry = getTopContent(content, d.properties.name, 1).get(year)[0];
+                return [
+                    d.properties.name, {
+                        centroid: { x: centroid[0], y: centroid[1] },
+                        topContent: topContentForCountry
+                    }]
+            })), d => d[1]["topContent"] != undefined));
+
+            return countryCentroids
+        }
+
+        function getTopContent(contentData, region, number) {
+            var yearExtents = d3.extent(contentData, d => new Date(d["Netflix Release Date"]).getFullYear())
+            var months = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"];
+            var monthName = new Intl.DateTimeFormat("en-US", { month: "long" }).format;
+
+            var topContentPerMonth = new Map();
+            for (let year = yearExtents[0]; year < yearExtents[1]; year++) {
+
+                var filtered = (region == null) ?
+                    contentData
+                        .filter(d => d["Boxoffice"] != "")
+                        .filter(d => new Date(d["Netflix Release Date"]).getFullYear() == year)
+                    : contentData
+                        .filter(d => d["Boxoffice"] != "")
+                        .filter(d => new Date(d["Netflix Release Date"]).getFullYear() == year)
+                        .filter(d => d["Country Availability"].includes(region))
+
+                var top10 = filtered.sort((a, b) => d3.descending(+a["IMDb Score"], +b["IMDb Score"])).slice(0, number);
+
+                topContentPerMonth.set(year, top10);
+            }
+            return topContentPerMonth;
+
+        }
+
+
+    </script>
     <script>
+        //content, mapData, path, year
+        //console.log(message.data.content,message.data.mapData,JSONfn.parse(message.data.path),message.data.year)
+        // console.log("Doing the big filter")
+
+        // //Create country centroids
+        // var countryCentroids = new Map(d3.filter((mapData.features.map(d => {
+        //     const centroid = path.centroid(d.geometry);
+        //     const topContentForCountry = getTopContent(content, d.properties.name, 1).get(year)[0];
+        //     return [
+        //         d.properties.name, {
+        //             centroid: { x: centroid[0], y: centroid[1] },
+        //             topContent: topContentForCountry
+        //         }]
+        // })), d => d[1]["topContent"] != undefined));
+
+        // console.log("Good to go")
+        // return countryCentroids
+
         const widgetBackgroundColor = "#151515";
 
         const defaultMapColor = "#373737"
@@ -315,10 +410,10 @@
 
                         g.append("image")
                             .attr("x", d => {
-                                return (d[1].centroid.x)
+                                return (d[1].centroid.x - (radiusScale(+d[1]["topContent"]["Boxoffice"].replace(/[^\w\s]/gi, '')) / 2))
                             })
                             .attr("y", d => {
-                                return d[1].centroid.y
+                                return d[1].centroid.y - radiusScale(+d[1]["topContent"]["Boxoffice"].replace(/[^\w\s]/gi, ''))
                             })
                             .attr("clip-path", d => "url(#bubblePath" + d[0].split(" ").join("") + ")")
 
@@ -1111,6 +1206,7 @@
         }
         function getTopContent(contentData, region, number) {
             var yearExtents = d3.extent(contentData, d => new Date(d["Netflix Release Date"]).getFullYear())
+            yearExtents[0] = 2018;
             var months = ["January", "February", "March", "April", "May", "June",
                 "July", "August", "September", "October", "November", "December"];
             var monthName = new Intl.DateTimeFormat("en-US", { month: "long" }).format;
@@ -1194,7 +1290,7 @@
             const lastQuarterDate = fiscalQuarterToDate(quarterLabels[quarterLabels.length - 1]);
             var now = new Date(firstQuarterDate);
 
-            lineGraphXScale = d3.scaleTime().range([0, width]).domain([startingDate, firstQuarterDate])
+            lineGraphXScale = d3.scaleTime().range([0, width]).domain([startingDate, firstQuarterDate]).clamp(true);
             lineGraphYScale = d3.scaleLinear().range([0, height]).domain([subscriberExtents[1], 0]);
 
             var g = d3.select("svg").append("g")
@@ -1636,7 +1732,6 @@
             var delay = 0;
             const delayBetweenYearDisplay = 5000;
 
-            displaySubscribersByRegion(netflixSubscribersByRegion, lineGraphPos, lineGraphSize[0], lineGraphSize[1])
 
             // const year = 2019;
             // var centroids = mapCentroidsToData(netflixShows, mapData, path, year)
@@ -1645,12 +1740,29 @@
             // drawBoxOfficeSuccessGraph(topContent.get(year), "Box Office Of Top Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
 
             drawScatterPlot(netflixShows, "Content released on Netflix over time", scatterPlotSize[0], scatterPlotSize[1])
-            centroidDataForEachYear = getCountryCentroidsWithTopContentEachYear(topContent, netflixShows, mapData, path);
+            //centroidDataForEachYear = getCountryCentroidsWithTopContentEachYear(topContent, netflixShows, mapData, path);
+            var blob = new Blob([
+                document.querySelector('#worker').textContent
+            ], { type: "text/javascript" })
+
+            const worker = new Worker(window.URL.createObjectURL(blob));;
+            var firstPass = true;
             topContent.forEach((content, year) => {
                 setTimeout(function () {
-                    displayTopContentBubbles(centroidDataForEachYear.get(year), netflixShows, mapData, path, year, boxOfficeExtents)
-                    drawHighestRatedGraph(content, "Highest Rated Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
-                    drawBoxOfficeSuccessGraph(content, "Box Office Of Top Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
+                    //content, mapData, path, year
+                    console.log((path))
+                    worker.postMessage(({ content: netflixShows, mapData: mapData, path: JSONfn.stringify(path), year: year }))
+
+                    worker.onmessage = function (msg) {
+                        if (firstPass) {
+                            displaySubscribersByRegion(netflixSubscribersByRegion, lineGraphPos, lineGraphSize[0], lineGraphSize[1])
+                            firstPass = false
+                        }
+                        // var centroid = mapCentroidsToData(netflixShows, mapData, path, year)
+                        displayTopContentBubbles(msg.data, netflixShows, mapData, path, year, boxOfficeExtents)
+                        drawHighestRatedGraph(content, "Highest Rated Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
+                        drawBoxOfficeSuccessGraph(content, "Box Office Of Top Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
+                    }
                 }, delay);
                 delay += delayBetweenYearDisplay
             })
@@ -1659,7 +1771,17 @@
             console.log(err)
             // handle error here
         })
+        // function getCountryCentroidsWithTopContentEachYear(topContent, netflixShows, mapData, path) {
+        //     var centroidDataForEachYear = new Map();
+        //     // topContent.forEach((_, year) => {
+        //     //     centroidDataForEachYear.set(year, mapCentroidsToData(netflixShows, mapData, path, year))
+        //     // })
 
+        //     centroidDataForEachYear.set(2015, mapCentroidsToData(netflixShows, mapData, path, 2015))
+        //     centroidDataForEachYear.set(2016, mapCentroidsToData(netflixShows, mapData, path, 2016))
+
+        //     return centroidDataForEachYear;
+        // }
 
     </script>
 </body>
