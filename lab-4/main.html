@@ -1,5 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+<!-- 
+    This is F21DV: Data Visualisation & Analytics Lab 4.
+
+    The purpose of this project is to visualise information surrounding content available on Netflix.
+ -->
 
 <head>
     <meta charset="utf-8">
@@ -46,14 +51,19 @@
     <script src='https://unpkg.com/simple-statistics@7.7.5/dist/simple-statistics.min.js'></script>
     <script type="text/javascript" src="jsonfn.js"></script>
 
+
+    <!-- This is a web worker, which runs in the background. The below code is quite intensive, so running it in the background prevents the application
+                    from being haulted during its execution.
+                     -->
+
     <script id="worker" type="javascript/worker">
     window = self; // jsonfn uses "window"
     importScripts("https://cdn.jsdelivr.net/gh/vkiryukhin/jsonfn/jsonfn.js");
     importScripts("https://d3js.org/d3.v7.js");
 
         self.onmessage = (message) =>{
-           
-            var content = message.data.content;     
+
+            var content = message.data.content;
             var mapData = message.data.mapData;
             var path = JSONfn.parse(message.data.path);
             var year = message.data.year;
@@ -99,22 +109,19 @@
             var monthName = new Intl.DateTimeFormat("en-US", { month: "long" }).format;
 
             var topContentPerMonth = new Map();
-            for (let year = yearExtents[0]; year < yearExtents[1]; year++) {
+            for (let year = yearExtents[0]; year < yearExtents[1]; year++) { var filtered=(region==null) ? contentData
+        .filter(d=> d["Boxoffice"] != "")
+        .filter(d => new Date(d["Netflix Release Date"]).getFullYear() == year)
+        : contentData
+        .filter(d => d["Boxoffice"] != "")
+        .filter(d => new Date(d["Netflix Release Date"]).getFullYear() == year)
+        .filter(d => d["Country Availability"].includes(region))
 
-                var filtered = (region == null) ?
-                    contentData
-                        .filter(d => d["Boxoffice"] != "")
-                        .filter(d => new Date(d["Netflix Release Date"]).getFullYear() == year)
-                    : contentData
-                        .filter(d => d["Boxoffice"] != "")
-                        .filter(d => new Date(d["Netflix Release Date"]).getFullYear() == year)
-                        .filter(d => d["Country Availability"].includes(region))
+        var top10 = filtered.sort((a, b) => d3.descending(+a["IMDb Score"], +b["IMDb Score"])).slice(0, number);
 
-                var top10 = filtered.sort((a, b) => d3.descending(+a["IMDb Score"], +b["IMDb Score"])).slice(0, number);
-
-                topContentPerMonth.set(year, top10);
-            }
-            return topContentPerMonth;
+        topContentPerMonth.set(year, top10);
+        }
+        return topContentPerMonth;
 
         }
 
@@ -136,9 +143,13 @@
         const HEADER_WIDTH = 35
         const WIDGET_CORNER_RADIUS = 25;
 
+        // Line graph scales are global so that they can be accessed by mouse event functions.
         var lineGraphXScale;
         var lineGraphYScale;
 
+        /**
+         * Converts an array of Netflix subscribers into a Map<Country,Subscriber Information>
+         */
         function subscriberArrayToMap(netflixSubscribersByCountry) {
             var map = (d3.group(netflixSubscribersByCountry, d => d.Country));
             map.forEach((element, key) => {
@@ -149,6 +160,10 @@
 
         }
 
+        /**
+         * Performs preprocessing to link country names between datasets. This is not extensive
+         * and could be extended in the future.
+         */
         function linkCountryNaming(mapData, netflixSubscribersByCountry) {
 
             mapData.features.forEach(element => {
@@ -176,6 +191,9 @@
 
         }
 
+        /**
+         * Displays geographic map, where countries are coloured based on number of Netflix subscribers.
+         */
         function displayMap(mapData, subscriberData) {
             const X_SIZE = 850;
             const Y_SIZE = 600;
@@ -234,8 +252,6 @@
 
 
             const extents = getSubscriberExtentsAcrossQuarters(subscriberData);
-            const delayBetweenColourShifts = 1000;
-            const durationOfColourShifts = 1000;
             const quarters = subscriberData.columns.filter(column => column.includes("# of Subscribers"))
 
 
@@ -256,6 +272,9 @@
             return path;
         }
 
+        /**
+         * Gets the extends of Netflix subscribers across different quarters (ie. dates)
+         */
         function getSubscriberExtentsAcrossQuarters(subscriberData) {
 
             const quarters = subscriberData.columns.filter(column => column.includes("# of Subscribers"))
@@ -275,6 +294,9 @@
 
         }
 
+        /**
+         * Sets the country colour on the map, based on the number of Netflix subscribers in the country.
+         */
         function setCountryColour(country, subscriberData, colourScale, field) {
 
 
@@ -291,6 +313,10 @@
             }
         }
 
+        /**
+         * Displays the top rated content available in each country.
+         * This bubbles are hoverable, highlighting related bubbles/elements in other graphs.
+         */
         function displayTopContentBubbles(countryCentroids, content, mapData, path, year, boxOfficeExtents) {
 
 
@@ -304,8 +330,6 @@
                 .domain([1, boxOfficeExtents[1]])
                 .range([0, maxRadius])
                 .clamp(true)
-
-
 
             var bubbles = d3.select("svg")
                 .selectAll(".bubble")
@@ -394,7 +418,9 @@
         }
 
 
-
+        /**
+         * Displays a mouse-hover pop-up, providing more information concerning a piece of Netflix media.
+         */
         function displayBubblePopup(e, d, thisElement = this) {
             const popupWidth = 510, popupHeight = 270;
             const titleBarHeight = 30;
@@ -634,7 +660,11 @@
 
         }
 
-        // Taken from https://stackoverflow.com/questions/12115691/svg-d3-js-rounded-corners-on-one-side-of-a-rectangle
+
+        /**
+         * Taken from https://stackoverflow.com/questions/12115691/svg-d3-js-rounded-corners-on-one-side-of-a-rectangle,
+         * this function is used to create a rectangle with rounded corners - each corner being able to be individually rounded.
+         */
         function roundedRect(x, y, w, h, r, tl, tr, bl, br) {
             var retval;
             retval = "M" + (x + r) + "," + y;
@@ -653,6 +683,10 @@
             retval += "z";
             return retval;
         }
+
+        /**
+         * Removes the Netflix content mousehover popup.
+         */
         function removeBubblePopup() {
             d3.selectAll(".bubblePopup")
                 .transition()
@@ -661,7 +695,9 @@
                 .remove();
 
         }
-
+        /**
+         * Creates various defs used throughout the application, ie. gradients and blurs.
+         */
         function createDefs() {
             var redGradient = d3.select("svg").append("defs")
                 .append("linearGradient")
@@ -740,6 +776,10 @@
 
 
         }
+
+        /**
+         * Instatiates graph container and axis.
+         */
         function initGraph(graphPos, graphClass) {
 
             var g = d3.select("svg").append("g")
@@ -752,6 +792,10 @@
 
         }
 
+        /**
+         * Draws the highest rated IMDb content onto the graph.
+         * The bars are hoverable, highlighting the bar/other associated elements in other graphs.
+         */
         function drawHighestRatedGraph(content, graphTitle, width, height) {
             const TITLE_VERT_OFFSET = -50;
             const X_AXIS_LABEL_HEIGHT = 300;
@@ -877,6 +921,9 @@
                 )
         }
 
+        /**
+         * High-level function to highlight content across graphs.
+         */
         function highlightContent(content) {
             d3.selectAll(".bar")
                 .transition()
@@ -903,6 +950,10 @@
             drawContentReleaseLine(content)
         }
 
+        /**
+         * Draws the a vertical line onto the Netflix Subscriptions over time graph, placed horizontally
+         * on the release date of the specified Netflix content.
+         */
         function drawContentReleaseLine(content) {
             var g = d3.select(".lineGraph")
                 .append("g")
@@ -927,7 +978,9 @@
                 .style("font-family", "Montserrat")
 
         }
-
+        /**
+         * General purpose function to reset elements to default state - ie. after hover.
+         */
         function resetAllContent() {
             d3.selectAll(".bar")
                 .transition()
@@ -949,6 +1002,9 @@
 
         }
 
+        /**
+         * Highlights the bubbles on the geographic map, while supressing others.
+         */
         function highlightBubbles(title) {
             d3.selectAll(".bubble")
                 .transition()
@@ -978,6 +1034,9 @@
 
         }
 
+        /**
+         * Resets bubbles into their original state (ie. after hover).
+         */
         function resetBubbles() {
             d3.selectAll(".bubble")
                 .transition()
@@ -995,6 +1054,10 @@
                 .attr("filter", null)
         }
 
+        /**
+         * Draws the box office success graph for a given year.
+         * The bars are hoverable, highlighting the bar and other associated elements in other graphs.
+         */
         function drawBoxOfficeSuccessGraph(content, graphTitle, width, height) {
 
             const TITLE_VERT_OFFSET = -50;
@@ -1123,6 +1186,10 @@
                     }
                 )
         }
+
+        /**
+         * Returns an array of titles contained within contentArray
+         */
         function getTitles(contentArray) {
 
             var listOfTitles = []
@@ -1133,6 +1200,9 @@
 
         }
 
+        /**
+         * Links country paths to their associated centroid from the geographic projection. 
+         */
         function mapCentroidsToData(content, mapData, path, year) {
             console.log("Doing the big filter")
 
@@ -1151,17 +1221,9 @@
             return countryCentroids
         }
 
-        function getCountryCentroidsWithTopContentEachYear(topContent, netflixShows, mapData, path) {
-            var centroidDataForEachYear = new Map();
-            // topContent.forEach((_, year) => {
-            //     centroidDataForEachYear.set(year, mapCentroidsToData(netflixShows, mapData, path, year))
-            // })
-
-            centroidDataForEachYear.set(2015, mapCentroidsToData(netflixShows, mapData, path, 2015))
-            centroidDataForEachYear.set(2016, mapCentroidsToData(netflixShows, mapData, path, 2016))
-
-            return centroidDataForEachYear;
-        }
+        /**
+         * Gets a number of top content for a given region. If null, it returns the global top content.
+         */
         function getTopContent(contentData, region, number) {
             var yearExtents = d3.extent(contentData, d => new Date(d["Netflix Release Date"]).getFullYear())
             yearExtents[0] = 2018;
@@ -1189,7 +1251,9 @@
 
         }
 
-
+        /**
+         * Converts a fiscal quarter string into a JavaScript date.
+         */
         function fiscalQuarterToDate(quarter) {
             const quarterEndMonths = ["March", "June", "September", "December"];
             const month = quarterEndMonths[--quarter[1]];
@@ -1201,7 +1265,9 @@
             return date
         }
 
-
+        /**
+         * Displays the line graph for number of Netflix subscribers for each major region.
+         */
         function displaySubscribersByRegion(netflixSubscribersByRegion, graphPos, width, height) {
 
             const numberOfHorzTicks = 5;
@@ -1320,6 +1386,9 @@
 
             var data = processedData;
 
+            /**
+             * Create a reference free copy of data, which will be updated over time as the time x-axis moves forward.
+             */
             var localData = new Map(data);
             for ([key, value] of localData) {
                 var t = value.map(el => Object.assign({}, el, { numberOfSubscribers: 0 }))
@@ -1344,6 +1413,7 @@
                 )
                 .attr("stroke-width", 3.5)
 
+            // Creates area gradient to be displayed underneath the lines.
             var areaGradients = d3.select("defs")
                 .selectAll(".areaGradient")
                 .data(localData.values())
@@ -1389,7 +1459,7 @@
                 })
 
 
-
+            //Create the legend.
             var legend = g.append("g")
                 .attr("class", "legend")
                 .attr("transform", "translate(" + (width + LEGEND_HORZ_OFFSET) + "," + ((height / 2) - LEGEND_VERT_OFFSET) + ")");
@@ -1413,13 +1483,18 @@
                 .attr("cy", (d, i) => i * SPACE_BETWEEN_ROWS)
                 .attr("r", CIRCLE_RADIUS)
                 .style("fill", d => lineColorScheme(d))
-            g
-                .append("g")
+
+            g.append("g")
                 .attr("class", "timeLine")
                 .attr("clip-path", "url(#clip)")
+                .attr("opacity", "0")
+
                 .append("line")
 
-
+            /**
+             * Draw line cursor over mouse, and draw the estimated number of subscribers to the 
+             * graph.
+             */
             g.on("mousemove", (e) => {
                 const x = d3.pointer(e)[0];
 
@@ -1463,7 +1538,9 @@
                     .style("font-family", "Montserrat")
 
             })
-
+            /**
+             * Hide the cursor.
+             */
             g.on("mouseleave", () => {
                 console.log("exit")
                 g.select(".timeLine")
@@ -1471,9 +1548,15 @@
                     .duration(250)
                     .attr("opacity", "0")
             })
+
+            // Based from https://bl.ocks.org/phvaillant/ff9135e0b03d76d67c368b5c7477f402,
+            // this will allow the graph time x-axis to increase with the line over time.
+
             var transition = d3.select({}).transition()
                 .duration(duration)
                 .ease(d3.easeLinear);
+
+
             var tickCounter = 0;
             (function tick() {
                 transition = transition.each(function () {
@@ -1490,7 +1573,7 @@
 
                         lineGraphXScale.domain([startingDate, newDataPoint.date]);
 
-                        // Redraw the line
+                        // Update the line
                         d3.select("#line" + key.replace(/[^a-zA-Z0-9]/g, '')) // Remove special characters (including spaces). Not valid for HTML ID.
                             .transition()
                             .duration(duration)
@@ -1507,6 +1590,7 @@
                                 }))
                             .attr('transform', null);
 
+                        // Update area below line
                         var area = d3.select("#area" + key.replace(/[^a-zA-Z0-9]/g, ''))
                         area.transition()
                             .duration(duration)
@@ -1525,6 +1609,7 @@
 
                     })
 
+                    // Update the selected content's date line
                     d3.select(".selectedContentLine").select("line")
                         .transition().ease(d3.easeLinear).duration(duration)
                         .attr("x1", d => lineGraphXScale(new Date(d["Netflix Release Date"])))
@@ -1533,7 +1618,8 @@
                         .transition().ease(d3.easeLinear).duration(duration)
                         .attr("x", d => lineGraphXScale(new Date(d["Netflix Release Date"])) + 10)
 
-
+                    // Update the cursors subscriber values, so that if the user leaves the mouse on the graph,
+                    // the elements update accordingly.
                     var x = d3.select(".timeLine").select("line").attr("x1");
                     var bisect = d3.bisector(function (d) { return d.date; }).left;
                     var xDate = lineGraphXScale.invert(x);
@@ -1565,9 +1651,12 @@
                         }
                     })
             })();
-
-
         }
+
+        /**
+         * Draws scatter plot of IMDb ratings vs time for all elements. The scatter plot should avoid using transitions
+         * as there are many points to be rendered - animated them all is too costly.
+         */
         function drawScatterPlot(content, graphTitle, width, height) {
 
             var g = d3.select(".boxOfficeTimeScatterPlot")
@@ -1625,6 +1714,8 @@
             const CIRCLE_RADIUS = 8;
             const LEGEND_HORZ_OFFSET = 70;
             const LEGEND_VERT_OFFSET = 140;
+
+            //Draw legend in row-column layout.
             var legend = g.append("g")
                 .attr("class", "legend")
                 .attr("transform", "translate(" + (width + LEGEND_HORZ_OFFSET) + "," + ((height / 2) - LEGEND_VERT_OFFSET) + ")");
@@ -1818,7 +1909,6 @@
             const scatterPlotSize = [600, 300];
             const periodBetweenGraphs = 1000;
 
-
             initGraph(graphPos, "topContentBarGraph")
             initGraph(boxOfficeSuccessGraphPos, "boxOfficeSucessGraph")
             initGraph(scatterPlotPos, "boxOfficeTimeScatterPlot")
@@ -1828,14 +1918,6 @@
             var delay = 0;
             const delayBetweenYearDisplay = 5000;
 
-
-            // const year = 2019;
-            // var centroids = mapCentroidsToData(netflixShows, mapData, path, year)
-            // displayTopContentBubbles(centroids, netflixShows, mapData, path, year, boxOfficeExtents)
-            // drawHighestRatedGraph(topContent.get(year), "Highest Rated Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
-            // drawBoxOfficeSuccessGraph(topContent.get(year), "Box Office Of Top Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
-
-            //centroidDataForEachYear = getCountryCentroidsWithTopContentEachYear(topContent, netflixShows, mapData, path);
             var blob = new Blob([
                 document.querySelector('#worker').textContent
             ], { type: "text/javascript" })
@@ -1853,7 +1935,6 @@
 
                             firstPass = false
                         }
-                        // var centroid = mapCentroidsToData(netflixShows, mapData, path, year)
                         displayTopContentBubbles(msg.data, netflixShows, mapData, path, year, boxOfficeExtents)
                         drawHighestRatedGraph(content, "Highest Rated Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
                         drawBoxOfficeSuccessGraph(content, "Box Office Of Top Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
