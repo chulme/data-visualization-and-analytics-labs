@@ -125,7 +125,7 @@
         const widgetBackgroundColor = "#151515";
 
         const defaultMapColor = "#373737"
-        const netflixColor = "#E50914"
+        const netflixColor = "#ce0812"//"#E50914"
         const netflixColorDarker = "#6e1115"
         const netflixColorDarkerLight = "#a0060e"
         const white = "#F5F5F1"
@@ -174,21 +174,6 @@
                 }
             });
 
-            // const netflixSubMap = subscriberArrayToMap(netflixSubscribersByCountry)
-            // netflixSubMap.forEach((element, key) => {
-
-            //     const indexOfMapContainingCountry = mapData.features.map(function (e) {
-            //         return e.properties.name
-            //     }).indexOf(key)
-
-            //     if (indexOfMapContainingCountry > 0) {
-
-            //     } else {
-            //         console.log("not found `" + key + "`")
-            //     }
-
-
-            // })
         }
 
         function displayMap(mapData, subscriberData) {
@@ -256,18 +241,15 @@
 
             const colourScale = d3.scaleLinear()
                 .domain(extents)
-                .range([defaultMapColor, netflixColor])
+                .range(["#4D3233", netflixColor])
 
             paths
-                .attr("fill", (d) => setCountryColour(d,
-                    subscriberData,
-                    colourScale,
-                    "# of Subscribers Q1 2021"))
                 .attr("fill", (d) => { // colours don't change noticeably between datasets, so it is appropriate to
                     const col = setCountryColour(d, // only use a single color here.
                         subscriberData,
                         colourScale,
                         "# of Subscribers Q4 2021 (Estimate)")
+
                     return col;
 
                 })
@@ -302,7 +284,6 @@
 
             if (subscriberDataForCountry.length != 0) {
                 const numberOfSubscribers = +subscriberDataForCountry[0][field]
-
                 return colourScale(numberOfSubscribers)
 
             } else {
@@ -824,7 +805,7 @@
                 .attr("class", "axis")
                 .attr("id", "bottomAxis")
                 .attr("transform", "translate(0," + height + ")")
-                .transition("something else")
+                .transition()
                 .duration(1000)
                 .call(d3.axisBottom(xScale))
                 .selectAll("text")
@@ -1072,7 +1053,7 @@
                 .attr("class", "axis")
                 .attr("id", "bottomAxis")
                 .attr("transform", "translate(0," + height + ")")
-                .transition("something else")
+                .transition()
                 .duration(1000)
                 .call(d3.axisBottom(xScale))
                 .selectAll("text")
@@ -1263,12 +1244,12 @@
             })
 
             const firstQuarterDate = fiscalQuarterToDate(quarterLabels[0]);
-            const startingDate = new Date(firstQuarterDate.getFullYear(), 0, 1);
+            const startingDate = new Date(firstQuarterDate - 1);
             const lastQuarterDate = fiscalQuarterToDate(quarterLabels[quarterLabels.length - 1]);
             var now = new Date(firstQuarterDate);
 
             lineGraphXScale = d3.scaleTime().range([0, width]).domain([startingDate, firstQuarterDate]).clamp(true);
-            lineGraphYScale = d3.scaleLinear().range([0, height]).domain([subscriberExtents[1], 0]);
+            lineGraphYScale = d3.scaleLinear().range([0, height]).domain([(subscriberExtents[1] + 10000000), 0]); //Add some to the extend, so there is room for cursor
 
             var g = d3.select("svg").append("g")
                 .attr("class", "lineGraph")
@@ -1432,11 +1413,67 @@
                 .attr("cy", (d, i) => i * SPACE_BETWEEN_ROWS)
                 .attr("r", CIRCLE_RADIUS)
                 .style("fill", d => lineColorScheme(d))
+            g
+                .append("g")
+                .attr("class", "timeLine")
+                .attr("clip-path", "url(#clip)")
+                .append("line")
 
+
+            g.on("mousemove", (e) => {
+                const x = d3.pointer(e)[0];
+
+                g.select(".timeLine")
+                    .transition()
+                    .duration(250)
+                    .attr("opacity", "1")
+
+                g.select(".timeLine")
+                    .select("line")
+                    .attr("x1", x)
+                    .attr("y1", 0)
+                    .attr("x2", x)
+                    .attr("y2", 300)
+                    .style("stroke-dasharray", ("10, 10"))
+                    .attr("stroke-width", 2)
+
+                var xDate = lineGraphXScale.invert(x);
+                var bisect = d3.bisector(function (d) { return d.date; }).left;
+
+                var mapOfApproxValues = new Map();
+                localData.forEach((d, k) => {
+                    var idx = bisect(d, xDate);
+                    mapOfApproxValues.set(k, d[idx])
+                })
+
+                g.select(".timeLine").selectAll("text")
+                    .data(mapOfApproxValues, d => d[0])
+                    .join("text")
+                    .attr("x", (x < 100) ? x + 10 : x - 10)
+                    .attr("y", d =>
+                        lineGraphYScale(d[1].numberOfSubscribers) - 10
+                    )
+
+                    .text(d => "~" + d[1].numberOfSubscribers)
+                    .attr("class", "blackBorder")
+                    .style("text-anchor", (x < 100) ? "start" : "end")
+                    .style("fill", "white")
+                    .style("font-size", "17px")
+                    .style("alignment-baseline", "central")
+                    .style("font-family", "Montserrat")
+
+            })
+
+            g.on("mouseleave", () => {
+                console.log("exit")
+                g.select(".timeLine")
+                    .transition()
+                    .duration(250)
+                    .attr("opacity", "0")
+            })
             var transition = d3.select({}).transition()
                 .duration(duration)
                 .ease(d3.easeLinear);
-
             var tickCounter = 0;
             (function tick() {
                 transition = transition.each(function () {
@@ -1478,7 +1515,6 @@
                                 .x((d, i) => lineGraphXScale(d.date))
                                 .y1(function (d, i) {
                                     var y = lineGraphYScale(d.numberOfSubscribers);
-                                    console.log(y)
                                     return y;
                                 })
                                 .y0(function (d, i) {
@@ -1496,6 +1532,25 @@
                     d3.select(".selectedContentLine").select("text")
                         .transition().ease(d3.easeLinear).duration(duration)
                         .attr("x", d => lineGraphXScale(new Date(d["Netflix Release Date"])) + 10)
+
+
+                    var x = d3.select(".timeLine").select("line").attr("x1");
+                    var bisect = d3.bisector(function (d) { return d.date; }).left;
+                    var xDate = lineGraphXScale.invert(x);
+
+                    var mapOfApproxValues = new Map();
+                    localData.forEach((d, k) => {
+                        var idx = bisect(d, xDate);
+                        mapOfApproxValues.set(k, d[idx])
+                    })
+                    g.select(".timeLine")
+                        .selectAll("text")
+                        .data(mapOfApproxValues, d => d[0])
+                        .join("text")
+                        .text(d => "~" + d[1].numberOfSubscribers)
+                        .attr("y", d =>
+                            lineGraphYScale(d[1].numberOfSubscribers) - 10
+                        )
 
                     // Slide x axis to the  left
                     xAxis.transition().ease(d3.easeLinear).duration(duration).call(lineGraphXScale.axis.ticks(numberOfHorzTicks))
@@ -1583,7 +1638,7 @@
                 .on("mouseover", (m, data) => {
                     legend.selectAll("circle,text") //highlight legend
                         .transition("legendHoverTrans")
-                        .duration(1050)
+                        .duration(250)
                         .style("fill-opacity", d => {
                             return d == data ? "1" : "0.4";
                         })
