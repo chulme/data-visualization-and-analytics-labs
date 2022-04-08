@@ -1363,6 +1363,52 @@
                 )
                 .attr("stroke-width", 3.5)
 
+            var areaGradients = d3.select("defs")
+                .selectAll(".areaGradient")
+                .data(localData.values())
+                .join(
+                    enter => {
+                        var gradient = enter.append("linearGradient")
+                            .attr("id", (d, i) => {
+                                var region = d[0].region
+                                return "gradient" + region.replace(/[^a-zA-Z0-9]/g, ''); // Remove special characters (including spaces). Not valid for HTML ID.
+                            })
+                            .attr("x1", "0%")
+                            .attr("y1", "0%")
+                            .attr("x2", "0%")
+                            .attr("y2", "35%")
+                            .attr("spreadMethod", "pad")
+                        gradient.append("stop")
+                            .attr("offset", "0%")
+                            .attr("stop-color", d => lineColorScheme(d[0]["region"]))
+                            .attr("stop-opacity", 0.4)
+                        gradient.append("stop")
+                            .attr("offset", "100%")
+                            .attr("stop-color", d => lineColorScheme(d[0]["region"]))
+                            .attr("stop-opacity", 0);
+                    }
+                )
+
+            var areas = g.append("g")
+                .attr("clip-path", "url(#clip)")
+                .attr("class", "areas")
+
+            areas.selectAll(".area")
+                .data(localData.values())
+                .enter()
+                .append("path")
+                .attr("class", "area")
+                .attr("id", (d, i) => {
+                    var region = d[0].region
+                    return "area" + region.replace(/[^a-zA-Z0-9]/g, ''); // Remove special characters (including spaces). Not valid for HTML ID.
+                })
+                .attr("fill", d => {
+                    var region = d[0].region
+                    return "url(#gradient" + region.replace(/[^a-zA-Z0-9]/g, '') + ")"; // Remove special characters (including spaces). Not valid for HTML ID.
+                })
+
+
+
             var legend = g.append("g")
                 .attr("class", "legend")
                 .attr("transform", "translate(" + (width + LEGEND_HORZ_OFFSET) + "," + ((height / 2) - LEGEND_VERT_OFFSET) + ")");
@@ -1423,6 +1469,24 @@
                                     return y;
                                 }))
                             .attr('transform', null);
+
+                        var area = d3.select("#area" + key.replace(/[^a-zA-Z0-9]/g, ''))
+                        area.transition()
+                            .duration(duration)
+                            .ease(d3.easeLinear)
+                            .attr("d", d3.area()
+                                .x((d, i) => lineGraphXScale(d.date))
+                                .y1(function (d, i) {
+                                    var y = lineGraphYScale(d.numberOfSubscribers);
+                                    console.log(y)
+                                    return y;
+                                })
+                                .y0(function (d, i) {
+                                    var y = height;
+                                    return y;
+                                }))
+
+
                     })
 
                     d3.select(".selectedContentLine").select("line")
