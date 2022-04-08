@@ -447,7 +447,7 @@
 
 
         function displayBubblePopup(e, d, thisElement = this) {
-            const popupWidth = 460, popupHeight = 270;
+            const popupWidth = 510, popupHeight = 270;
             const titleBarHeight = 30;
             const horzOffset = 100, vertOffset = -60;
             const titleOffset = 13;
@@ -463,7 +463,10 @@
             const titleFontSize = "20px";
             const infoFontSize = "17px";
             const elementClass = d3.select(thisElement).attr("class");
-
+            const textX = 10;
+            const imageX = 320;
+            const imageY = -5;
+            const imageHeightOffset = 15;
             const bubbleCentroid = { x: d3.pointer(e, d3.select("svg"))[0], y: d3.pointer(e, d3.select("svg"))[1] } //need to pass svg as target to mouse event due to transformed rects.
             var movieData = (elementClass == "bubble") ? d[1].topContent : d;
             var g = d3.select("svg")
@@ -511,10 +514,9 @@
                 .attr("transform", "translate(" + (0) + "," + (infoOffset) + ")")
 
             info.append("text")
-                .attr("x", (popupWidth / 2))
+                .attr("x", textX)
                 .attr("y", 0)
                 .style("font-family", "Montserrat")
-                .style("text-anchor", "middle")
                 .style("alignment-baseline", "central")
                 .style("font-size", "0px")
                 .text("Directed by:")
@@ -525,24 +527,23 @@
 
 
             info.append("text")
-                .attr("x", (popupWidth / 2))
+                .attr("x", textX)
                 .attr("y", newLineOffset)
                 .style("font-family", "Montserrat")
-                .style("text-anchor", "middle")
                 .style("alignment-baseline", "central")
                 .style("font-size", "0px")
                 .style("font-weight", "bold")
-                .text(movieData["Director"])
+                .text((movieData["Director"].length > 30) ? movieData["Director"].slice(0, 30) + "..." : movieData["Director"])
+
                 .transition()
                 .duration(textDuration)
                 .delay(infoTextDelay)
                 .style("font-size", infoFontSize)
 
             info.append("text")
-                .attr("x", (popupWidth / 2))
+                .attr("x", textX)
                 .attr("y", newLineOffset * 2)
                 .style("font-family", "Montserrat")
-                .style("text-anchor", "middle")
                 .style("alignment-baseline", "central")
                 .style("font-size", "0px")
                 .text("Genre(s):")
@@ -551,25 +552,28 @@
                 .delay(infoTextDelay)
                 .style("font-size", infoFontSize)
 
+            //Ensure every element after this point is a single comma seperated string.
+            if (Array.isArray(movieData["Genre"])) {
+                movieData["Genre"] = movieData["Genre"].join(", ");
+            }
+
             info.append("text")
-                .attr("x", (popupWidth / 2))
+                .attr("x", textX)
                 .attr("y", newLineOffset * 3)
                 .style("font-family", "Montserrat")
-                .style("text-anchor", "middle")
                 .style("alignment-baseline", "central")
                 .style("font-size", "0px")
                 .style("font-weight", "bold")
-                .text(movieData["Genre"])
+                .text((movieData["Genre"].length > 30) ? movieData["Genre"].slice(0, 30) + "..." : movieData["Genre"])
                 .transition()
                 .duration(textDuration)
                 .delay(infoTextDelay)
                 .style("font-size", infoFontSize)
 
             info.append("text")
-                .attr("x", (popupWidth / 2))
+                .attr("x", textX)
                 .attr("y", newLineOffset * 4)
                 .style("font-family", "Montserrat")
-                .style("text-anchor", "middle")
                 .style("alignment-baseline", "central")
                 .style("font-size", "0px")
                 .text("Release Date (Initial / Netflix):")
@@ -579,10 +583,9 @@
                 .style("font-size", infoFontSize)
 
             info.append("text")
-                .attr("x", (popupWidth / 2))
+                .attr("x", textX)
                 .attr("y", newLineOffset * 5)
                 .style("font-family", "Montserrat")
-                .style("text-anchor", "middle")
                 .style("alignment-baseline", "central")
                 .style("font-size", "0px")
                 .style("font-weight", "bold")
@@ -593,10 +596,9 @@
                 .style("font-size", infoFontSize)
 
             info.append("text")
-                .attr("x", (popupWidth / 2))
+                .attr("x", textX)
                 .attr("y", newLineOffset * 6)
                 .style("font-family", "Montserrat")
-                .style("text-anchor", "middle")
                 .style("alignment-baseline", "central")
                 .style("font-size", "0px")
                 .text("IMDb Score:")
@@ -606,10 +608,9 @@
                 .style("font-size", infoFontSize)
 
             info.append("text")
-                .attr("x", (popupWidth / 2))
+                .attr("x", textX)
                 .attr("y", newLineOffset * 7)
                 .style("font-family", "Montserrat")
-                .style("text-anchor", "middle")
                 .style("alignment-baseline", "central")
                 .style("font-size", "0px")
                 .style("font-weight", "bold")
@@ -620,10 +621,9 @@
                 .style("font-size", infoFontSize)
 
             info.append("text")
-                .attr("x", (popupWidth / 2))
+                .attr("x", textX)
                 .attr("y", newLineOffset * 8)
                 .style("font-family", "Montserrat")
-                .style("text-anchor", "middle")
                 .style("alignment-baseline", "central")
                 .style("font-size", "0px")
                 .text("Box office revenue:")
@@ -633,45 +633,54 @@
                 .style("font-size", infoFontSize)
 
             info.append("text")
-                .attr("x", (popupWidth / 2))
+                .attr("x", textX)
                 .attr("y", newLineOffset * 9)
                 .style("font-family", "Montserrat")
-                .style("text-anchor", "middle")
                 .style("alignment-baseline", "central")
                 .style("font-size", "0px")
                 .style("font-weight", "bold")
-                .text("$" + movieData["Boxoffice"])
+                .text(movieData["Boxoffice"])
                 .transition()
                 .duration(textDuration)
                 .delay(infoTextDelay)
                 .style("font-size", infoFontSize)
 
             info.append("text")
-                .attr("x", (popupWidth / 2))
+                .attr("x", textX)
                 .attr("y", newLineOffset * 10)
                 .style("font-family", "Montserrat")
-                .style("text-anchor", "middle")
                 .style("alignment-baseline", "central")
                 .style("font-size", "0px")
-                .text("Awards received:")
+                .text("Awards received/nominated:")
                 .transition()
                 .duration(textDuration)
                 .delay(infoTextDelay)
                 .style("font-size", infoFontSize)
 
             info.append("text")
-                .attr("x", (popupWidth / 2))
+                .attr("x", textX)
                 .attr("y", newLineOffset * 11)
                 .style("font-family", "Montserrat")
-                .style("text-anchor", "middle")
                 .style("alignment-baseline", "central")
                 .style("font-size", "0px")
                 .style("font-weight", "bold")
-                .text(Math.trunc(+movieData["Awards Received"]))
+                .text(Math.trunc(+movieData["Awards Received"]) + "/" + Math.trunc(+movieData["Awards Nominated For"]))
                 .transition()
                 .duration(textDuration)
                 .delay(infoTextDelay)
                 .style("font-size", infoFontSize)
+
+            info.append("image")
+                .attr("x", imageX)
+                .attr("y", imageY)
+                .attr("xlink:href", movieData["Image"])
+                .attr("height", (popupHeight - imageHeightOffset))
+                .attr("opacity", 0)
+                .transition()
+                .duration(textDuration)
+                .delay(infoTextDelay)
+                .attr("opacity", 1)
+
 
 
         }
@@ -1739,7 +1748,6 @@
             // drawHighestRatedGraph(topContent.get(year), "Highest Rated Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
             // drawBoxOfficeSuccessGraph(topContent.get(year), "Box Office Of Top Content On Netflix During " + year, barGraphSize[0], barGraphSize[1])
 
-            drawScatterPlot(netflixShows, "Content released on Netflix over time", scatterPlotSize[0], scatterPlotSize[1])
             //centroidDataForEachYear = getCountryCentroidsWithTopContentEachYear(topContent, netflixShows, mapData, path);
             var blob = new Blob([
                 document.querySelector('#worker').textContent
@@ -1756,6 +1764,8 @@
                     worker.onmessage = function (msg) {
                         if (firstPass) {
                             displaySubscribersByRegion(netflixSubscribersByRegion, lineGraphPos, lineGraphSize[0], lineGraphSize[1])
+                            drawScatterPlot(netflixShows, "Content released on Netflix over time", scatterPlotSize[0], scatterPlotSize[1])
+
                             firstPass = false
                         }
                         // var centroid = mapCentroidsToData(netflixShows, mapData, path, year)
