@@ -62,8 +62,6 @@
 
         }
          function mapCentroidsToData(content, mapData, year) {
-            console.log("Doing the big filter")
-
             const X_SIZE = 850;
             const Y_SIZE = 600;
             const X_MARGIN = 50;
@@ -123,23 +121,6 @@
 
     </script>
     <script>
-        //content, mapData, path, year
-        //console.log(message.data.content,message.data.mapData,JSONfn.parse(message.data.path),message.data.year)
-        // console.log("Doing the big filter")
-
-        // //Create country centroids
-        // var countryCentroids = new Map(d3.filter((mapData.features.map(d => {
-        //     const centroid = path.centroid(d.geometry);
-        //     const topContentForCountry = getTopContent(content, d.properties.name, 1).get(year)[0];
-        //     return [
-        //         d.properties.name, {
-        //             centroid: { x: centroid[0], y: centroid[1] },
-        //             topContent: topContentForCountry
-        //         }]
-        // })), d => d[1]["topContent"] != undefined));
-
-        // console.log("Good to go")
-        // return countryCentroids
 
         const widgetBackgroundColor = "#151515";
 
@@ -277,26 +258,13 @@
                 .domain(extents)
                 .range([defaultMapColor, netflixColor])
 
-            paths.transition()
-                .delay(delayBetweenColourShifts)
-                .duration(durationOfColourShifts)
+            paths
                 .attr("fill", (d) => setCountryColour(d,
                     subscriberData,
                     colourScale,
                     "# of Subscribers Q1 2021"))
-
-                //     .transition()
-                // .delay(delayBetweenColourShifts)
-                // .duration(durationOfColourShifts)
-                // .attr("fill", "green")
-
-                .transition()
-                .delay(delayBetweenColourShifts)
-                .duration(durationOfColourShifts)
-                .attr("fill", (d) => {
-
-
-                    const col = setCountryColour(d,
+                .attr("fill", (d) => { // colours don't change noticeably between datasets, so it is appropriate to
+                    const col = setCountryColour(d, // only use a single color here.
                         subscriberData,
                         colourScale,
                         "# of Subscribers Q4 2021 (Estimate)")
@@ -1757,8 +1725,6 @@
             var firstPass = true;
             topContent.forEach((content, year) => {
                 setTimeout(function () {
-                    //content, mapData, path, year
-                    console.log((path))
                     worker.postMessage(({ content: netflixShows, mapData: mapData, path: JSONfn.stringify(path), year: year }))
 
                     worker.onmessage = function (msg) {
@@ -1781,17 +1747,6 @@
             console.log(err)
             // handle error here
         })
-        // function getCountryCentroidsWithTopContentEachYear(topContent, netflixShows, mapData, path) {
-        //     var centroidDataForEachYear = new Map();
-        //     // topContent.forEach((_, year) => {
-        //     //     centroidDataForEachYear.set(year, mapCentroidsToData(netflixShows, mapData, path, year))
-        //     // })
-
-        //     centroidDataForEachYear.set(2015, mapCentroidsToData(netflixShows, mapData, path, 2015))
-        //     centroidDataForEachYear.set(2016, mapCentroidsToData(netflixShows, mapData, path, 2016))
-
-        //     return centroidDataForEachYear;
-        // }
 
     </script>
 </body>
